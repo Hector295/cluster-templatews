@@ -1,0 +1,19 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: {{ include "kamaji-openstack.fullname" . }}
+  labels:
+    cloud: openstack
+    cluster-api.cattle.io/rancher-auto-import: "true"
+  {{- include "kamaji-openstack.labels" . | nindent 4 }}
+spec:
+  clusterNetwork:
+    serviceDomain: cluster.local
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha1
+    kind: KamajiControlPlane
+    name: {{ include "kamaji-openstack.fullname" . }}-control-plane
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+    kind: OpenStackCluster
+    name: {{ include "kamaji-openstack.fullname" . }}

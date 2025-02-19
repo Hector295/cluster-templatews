@@ -1,0 +1,10 @@
+{{- if .Values.k0sWorkers.enabled }}
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: K0sWorkerConfigTemplate
+metadata:
+  name: {{ include "kamaji-openstack.fullname" . }}-md-k0s
+spec:
+  template:
+    spec:
+      version: {{ .Values.kube_version }}+k0s.0
+{{- end }}

@@ -1,0 +1,29 @@
+{{- if .Values.calico.enabled }}
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "kamaji-openstack.fullname" . }}-calico
+spec:
+  chartName: tigera-operator
+  clusterSelector:
+    matchLabels:
+    {{- include "kamaji-openstack.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: tigera-operator
+  repoURL: https://docs.tigera.io/calico/charts
+  valuesTemplate: |
+    installation:
+      cni:
+        type: Calico
+      calicoNetwork:
+        bgp: Enabled
+        mtu: {{ .Values.calico.mtu }}
+        ipPools:
+        - cidr: 10.244.0.0/16
+          encapsulation: IPIP
+{{- end }}

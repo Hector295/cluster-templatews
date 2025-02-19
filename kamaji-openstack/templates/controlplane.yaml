@@ -1,0 +1,36 @@
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha1
+kind: KamajiControlPlane
+metadata:
+  name: {{ include "kamaji-openstack.fullname" . }}-control-plane
+  labels:
+  {{- include "kamaji-openstack.labels" . | nindent 4 }}
+spec:
+  addons:
+    coreDNS: {}
+    konnectivity: {}
+    kubeProxy: {}
+  apiServer:
+    extraArgs:
+    - --cloud-provider=external
+  controllerManager:
+    extraArgs:
+    - --cloud-provider=external
+  dataStoreName: default
+  deployment:
+    {{- with .Values.controlPlane.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.controlPlane.tolerations }}
+    tolerations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  kubelet:
+    preferredAddressTypes:
+    - InternalIP
+    - ExternalIP
+    - Hostname
+  network:
+    serviceType: LoadBalancer
+  replicas: {{ .Values.controlPlane.replicas }}
+  version: {{ .Values.kube_version }}

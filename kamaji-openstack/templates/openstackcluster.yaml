@@ -1,0 +1,19 @@
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: OpenStackCluster
+metadata:
+  name: {{ include "kamaji-openstack.fullname" . }}
+spec:
+  apiServerFixedIP: ""
+  apiServerLoadBalancer:
+    enabled: false
+  controlPlaneAvailabilityZones:
+  - nova
+  disableAPIServerFloatingIP: true
+  disableExternalNetwork: true
+  identityRef:
+    cloudName: openstack
+    name: {{ include "kamaji-openstack.fullname" . }}-cloud-secret
+  network:
+    id: {{ .Values.cloudConfig.networkId }}
+  subnets:
+  - id: {{ .Values.cloudConfig.subnetId }}

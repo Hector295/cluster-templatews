@@ -1,0 +1,21 @@
+{{- if .Values.kubeadmWorkers.enabled }}
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: OpenStackMachineTemplate
+metadata:
+  name: {{ include "kamaji-openstack.fullname" . }}-md-kubeadm
+  labels:
+  {{- include "kamaji-openstack.labels" . | nindent 4 }}
+spec:
+  template:
+    spec:
+      flavor: whiteidam
+      identityRef:
+        cloudName: openstack
+        name: {{ include "kamaji-openstack.fullname" . }}-cloud-secret
+      image:
+        id: {{ .Values.kubeadmWorkers.imageId }}
+      ports:
+      - network:
+          id: {{ .Values.cloudConfig.networkId }}
+      sshKeyName: {{ .Values.cloudConfig.sshKeyName }}
+{{- end }}

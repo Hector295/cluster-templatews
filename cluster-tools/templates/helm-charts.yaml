@@ -1,0 +1,93 @@
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: prometheus
+spec:
+  chartName: prometheus
+  clusterSelector:
+    matchLabels:
+      cloud: openstack
+  credentials:
+    key: whitestack-public.json
+    secret:
+      name: whitestack-oci-creds
+      namespace: caaph-system
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: monitoring
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace
+---
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: node-config-operator
+spec:
+  chartName: node-config-operator
+  clusterSelector:
+    matchLabels:
+      cloud: openstack
+  credentials:
+    key: whitestack-public.json
+    secret:
+      name: whitestack-oci-creds
+      namespace: caaph-system
+  namespace: whitestack
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m0s
+    wait: true
+    waitForJobs: true
+  releaseName: nco
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace
+  valuesTemplate: |
+    controllerManager:
+      manager:
+        args:
+        - --metrics-bind-address=127.0.0.1:8090
+        healthPort: 8082
+---
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: metallb
+spec:
+  chartName: metallb
+  clusterSelector:
+    matchLabels:
+      cloud: openstack
+  credentials:
+    key: whitestack-public.json
+    secret:
+      name: whitestack-oci-creds
+      namespace: caaph-system
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: metallb-system
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace
+---
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: longhorn
+spec:
+  chartName: longhorn
+  clusterSelector:
+    matchLabels:
+      cloud: openstack
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: longhorn-system
+  repoURL: https://charts.longhorn.io

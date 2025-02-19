@@ -1,0 +1,26 @@
+{{- if .Values.kubeadmWorkers.enabled }}
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  name: {{ include "kamaji-openstack.fullname" . }}-md-kubeadm
+  labels:
+  {{- include "kamaji-openstack.labels" . | nindent 4 }}
+spec:
+  clusterName: {{ include "kamaji-openstack.fullname" . }}
+  replicas: {{ .Values.kubeadmWorkers.replicas }}
+  selector:
+    matchLabels: null
+  template:
+    spec:
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          kind: KubeadmConfigTemplate
+          name: {{ include "kamaji-openstack.fullname" . }}-md-kubeadm
+      clusterName: {{ include "kamaji-openstack.fullname" . }}
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        kind: OpenStackMachineTemplate
+        name: {{ include "kamaji-openstack.fullname" . }}-md-kubeadm
+      version: {{ .Values.kube_version }}
+{{- end }}

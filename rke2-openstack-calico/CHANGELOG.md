@@ -1,0 +1,1 @@
+- Feature: Adds rke2-openstack-calico cluster template [PRWCRUISER-592].

@@ -1,0 +1,28 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: {{ .Values.cluster.name }}
+  namespace: fleet-default
+  labels:
+    cluster.x-k8s.io/cluster-name: {{ .Values.cluster.name }}
+    cloud: openstack
+    cluster-api.cattle.io/rancher-auto-import: "true"
+  {{- include "rke2-openstack-calico.labels" . | nindent 4 }}
+    {{- if .Values.cluster.labels }}
+    {{- toYaml .Values.cluster.labels | nindent 4 }}
+    {{- end }}
+spec:
+  clusterNetwork:
+    serviceDomain: cluster.local
+    pods:
+      cidrBlocks: ["{{ .Values.cniConfig.podCIDR }}"]
+    services:
+      cidrBlocks: ["{{ .Values.cniConfig.serviceCIDR }}"]
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+    kind: OpenStackCluster
+    name: {{ .Values.cluster.name }}
+  controlPlaneRef:
+    kind: RKE2ControlPlane
+    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    name: {{ .Values.cluster.name }}-control-plane

@@ -1,0 +1,31 @@
+{{ if .Values.sdnController.enabled }}
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-calico.name" . }}-sdn-controller-helm
+spec:
+  version: "0.3.0"
+  chartName: whitesdn-controller
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-calico.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: whitesdn
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+  valuesTemplate: |
+    {{- if and (hasKey .Values.sdnController "customValues") (not (empty .Values.sdnController.customValues)) }}
+    {{- toYaml .Values.sdnController.customValues }}
+    {{- end }}
+    whitesdnSecrets:
+      password: {{ .Values.sdnController.whitesdnSecrets.password }}
+{{- end }}

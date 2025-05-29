@@ -1,0 +1,627 @@
+questions:
+  # ===============
+  # Cluster Configuration
+  # ===============
+  - variable: "cluster.apiServerVIP"
+    label: "API Server VIP"
+    description: "Virtual IP address of the API server"
+    type: "ipaddr"
+    required: true
+    default: ""
+    group: "Cluster"
+
+  - variable: "cluster.name"
+    label: "Cluster Name"
+    description: "Name of the Kubernetes cluster"
+    type: "string"
+    required: true
+    default: "prod-cluster"
+    group: "Cluster"
+
+  - variable: "cluster.etcd.exposeMetrics"
+    label: "Expose ETCD Metrics"
+    description: "Defines the policy for ETCD metrics exposure"
+    type: "boolean"
+    default: false
+    group: "Cluster"
+
+  - variable: "cluster.etcd.backup.disableAutomaticSnapshots"
+    label: "Disable Automatic Snapshots"
+    description: "Disable automatic ETCD snapshots"
+    type: "boolean"
+    default: true
+    group: "Cluster"
+
+  # ===============
+  # OpenStack Configuration
+  # ===============
+  - variable: "infraConfig.authUrl"
+    label: "OpenStack Authentication URL"
+    description: "URL of the OpenStack authentication service"
+    type: "string"
+    required: true
+    default: "https://whitecloud.intra.whitestack.com:5000/v3"
+    group: "OpenStack"
+
+  - variable: "infraConfig.domainName"
+    label: "Domain Name"
+    description: "Domain name in OpenStack"
+    type: "string"
+    required: true
+    default: "Default"
+    group: "OpenStack"
+
+  - variable: "infraConfig.keypairName"
+    label: "Key Pair Name"
+    description: "Key pair name for SSH access"
+    type: "string"
+    required: true
+    default: "Hector"
+    group: "OpenStack"
+
+  - variable: "infraConfig.region"
+    label: "Region"
+    description: "OpenStack region"
+    type: "string"
+    required: true
+    default: "RegionOne"
+    group: "OpenStack"
+
+  - variable: "infraConfig.sshUser"
+    label: "SSH User"
+    description: "User for SSH connections"
+    type: "string"
+    required: true
+    default: "ubuntu"
+    group: "OpenStack"
+
+  - variable: "infraConfig.tenantName"
+    label: "Tenant Name"
+    description: "Tenant/project name in OpenStack"
+    type: "string"
+    required: true
+    default: "team-products"
+    group: "OpenStack"
+
+  - variable: "infraConfig.username"
+    label: "OpenStack User"
+    description: "Username for OpenStack"
+    type: "string"
+    required: true
+    default: "hventura"
+    group: "OpenStack"
+
+  - variable: "infraConfig.principalNetwork.netName"
+    label: "Principal Network"
+    description: "Principal network name"
+    type: "string"
+    required: true
+    default: "intra-net-products"
+    group: "OpenStack"
+
+  - variable: "infraConfig.principalNetwork.subnetName"
+    label: "Principal Subnet"
+    description: "Principal subnet name"
+    type: "string"
+    required: true
+    default: "net-products"
+    group: "OpenStack"
+
+  - variable: "infraConfig.password.secret.name"
+    label: "Password Secret Name"
+    description: "Name of the secret containing the OpenStack password"
+    type: "secret"
+    required: true
+    default: "passopenstack"
+    group: "OpenStack"
+
+  # ===============
+  # Control Plane Nodes
+  # ===============
+  - variable: "controlPlaneNodes.quantity"
+    label: "Control Plane Nodes Quantity"
+    description: "Number of control plane nodes"
+    type: "int"
+    required: true
+    default: 1
+    min: 1
+    max: 9
+    group: "Control Plane"
+
+  - variable: "controlPlaneNodes.flavorName"
+    label: "Control Plane Flavor"
+    description: "Instance type for control plane nodes"
+    type: "string"
+    required: true
+    default: "m1.large"
+    group: "Control Plane"
+
+  - variable: "controlPlaneNodes.imageName"
+    label: "OS Image"
+    description: "Operating system image"
+    type: "string"
+    required: true
+    default: "Ubuntu 22.04 LTS"
+    group: "Control Plane"
+
+  - variable: "controlPlaneNodes.rootVolume.sizeGiB"
+    label: "Root Volume Size (GiB)"
+    description: "Root volume size in GiB"
+    type: "string"
+    required: false
+    default: ""
+    group: "Control Plane"
+
+  - variable: "controlPlaneNodes.hypervisorHostname"
+    label: "Hypervisor Hostname"
+    description: "Specific hypervisor hostname"
+    type: "hostname"
+    required: false
+    default: ""
+    group: "Control Plane"
+
+  # ===============
+  # Worker Nodes
+  # ===============
+  - variable: "workerNodes.defaults.quantity"
+    label: "Worker Nodes Quantity"
+    description: "Default number of worker nodes"
+    type: "int"
+    required: true
+    default: 1
+    min: 1
+    max: 20
+    group: "Worker Nodes"
+
+  - variable: "workerNodes.defaults.flavorName"
+    label: "Default Worker Flavor"
+    description: "Instance type for worker nodes"
+    type: "string"
+    required: true
+    default: "m1.large"
+    group: "Worker Nodes"
+
+  - variable: "workerNodes.defaults.rootVolume.sizeGiB"
+    label: "Worker Root Volume Size (GiB)"
+    description: "Root volume size for workers in GiB"
+    type: "string"
+    required: false
+    default: ""
+    group: "Worker Nodes"
+
+  # ===============
+  # CNI Configuration
+  # ===============
+  - variable: "cniConfig.podCIDR"
+    label: "Pod CIDR"
+    description: "CIDR range for pods"
+    type: "cidr"
+    required: true
+    default: "10.42.0.0/16"
+    group: "Networking"
+
+  - variable: "cniConfig.serviceCIDR"
+    label: "Service CIDR"
+    description: "CIDR range for services"
+    type: "cidr"
+    required: true
+    default: "10.42.0.0/16"
+    group: "Networking"
+
+  - variable: "cniConfig.mtu"
+    label: "MTU"
+    description: "Maximum Transmission Unit"
+    type: "int"
+    required: true
+    default: 1440
+    min: 1200
+    max: 9000
+    group: "Networking"
+
+  - variable: "cniConfig.tunnelProtocol"
+    label: "Tunnel Protocol"
+    description: "Protocol for network tunnels"
+    type: "enum"
+    required: true
+    default: "VXLAN"
+    options:
+      - "VXLAN"
+      - "IPIP"
+    group: "Networking"
+
+  - variable: "cniConfig.masquerade"
+    label: "Enable Masquerade"
+    description: "Enable masquerade for outbound traffic"
+    type: "boolean"
+    default: true
+    group: "Networking"
+
+  - variable: "cniConfig.bgp"
+    label: "Enable BGP"
+    description: "Enable Border Gateway Protocol"
+    type: "boolean"
+    default: false
+    group: "Networking"
+
+  # ===============
+  # Storage
+  # ===============
+  - variable: "storage.longhorn.enabled"
+    label: "Enable Longhorn"
+    description: "Enable Longhorn distributed storage"
+    type: "boolean"
+    default: false
+    group: "Storage"
+  - variable: "storage.longhorn.customValues"
+    label: "Longhorn Custom Values"
+    description: "Custom YAML configuration for Longhorn"
+    type: "yaml"
+    default: {}
+    group: "Storage"
+    if: "storage.longhorn.enabled"
+
+  - variable: "storage.openebs.enabled"
+    label: "Enable OpenEBS"
+    description: "Enable OpenEBS storage"
+    type: "boolean"
+    default: true
+    group: "Storage"
+  - variable: "storage.openebs.customValues"
+    label: "OpenEBS Custom Values"
+    description: "Custom YAML configuration for OpenEBS"
+    type: "yaml"
+    default: {}
+    group: "Storage"
+    if: "storage.openebs.enabled"
+
+  - variable: "storage.cinder.enabled"
+    label: "Enable Cinder"
+    description: "Enable OpenStack Cinder storage"
+    type: "boolean"
+    default: false
+    group: "Storage"
+  - variable: "storage.cinder.customValues"
+    label: "Cinder Custom Values"
+    description: "Custom YAML configuration for OpenStack Cinder"
+    type: "yaml"
+    default: {}
+    group: "Storage"
+    if: "storage.cinder.enabled"
+
+  - variable: "storage.ceph.enabled"
+    label: "Enable Ceph"
+    description: "Enable Ceph storage"
+    type: "boolean"
+    default: false
+    group: "Storage"
+  # ===============
+  # Ceph Storage Configuration
+  # ===============
+  - variable: "storage.ceph.clusterID"
+    label: "Ceph Cluster ID"
+    description: "Unique identifier of the Ceph cluster"
+    type: "string"
+    required: true
+    group: "Storage"
+    if: "storage.ceph.enabled"
+
+  - variable: "storage.ceph.monitorList"
+    label: "Ceph Monitor List"
+    description: "List of Ceph monitor IP:port addresses (e.g. 1.2.3.4:6789)"
+    type: "array"
+    default: []
+    group: "Storage"
+    if: "storage.ceph.enabled"
+
+  - variable: "storage.ceph.pool"
+    label: "Ceph Pool"
+    description: "Storage pool name in Ceph"
+    type: "string"
+    required: true
+    default: "volumes"
+    group: "Storage"
+    if: "storage.ceph.enabled"
+
+  - variable: "storage.ceph.userID"
+    label: "Ceph User ID"
+    description: "User ID for Ceph authentication"
+    type: "string"
+    required: true
+    default: "admin"
+    group: "Storage"
+    if: "storage.ceph.enabled"
+
+  - variable: "storage.ceph.userKey"
+    label: "Ceph User Key"
+    description: "Authentication key for Ceph user"
+    type: "password"
+    required: true
+    default: "AAAAAAAAAAAAAAAAAA/BBBBBBBBBBBBBBBBBBB=="
+    group: "Storage"
+    if: "storage.ceph.enabled"
+
+  - variable: "storage.ceph.provisionerReplicaCount"
+    label: "Provisioner Replicas"
+    description: "Number of Ceph provisioner replicas"
+    type: "int"
+    required: true
+    default: 3
+    min: 1
+    max: 10
+    group: "Storage"
+    if: "storage.ceph.enabled"
+
+  - variable: "storage.ceph.reclaimPolicy"
+    label: "Reclaim Policy"
+    description: "Reclaim policy for persistent volumes"
+    type: "enum"
+    required: true
+    default: "Retain"
+    options:
+      - "Retain"
+      - "Delete"
+    group: "Storage"
+    if: "storage.ceph.enabled"
+
+  - variable: "storage.ceph.enabledHostNetwork"
+    label: "Enable Host Network"
+    description: "Enable host network usage for Ceph"
+    type: "boolean"
+    default: false
+    group: "Storage"
+    if: "storage.ceph.enabled"
+
+  # ===============
+  # Ceph CSI RBD Configuration
+  # ===============
+  - variable: "storage.ceph.csiRBD.enabled"
+    label: "Enable CSI RBD"
+    description: "Enable CSI driver for Ceph RBD (Block Device)"
+    type: "boolean"
+    default: false
+    group: "Storage"
+    if: "storage.ceph.enabled"
+
+  # ===============
+  # Ceph CSI FS Configuration
+  # ===============
+  - variable: "storage.ceph.csiFS.enabled"
+    label: "Enable CSI FS"
+    description: "Enable CSI driver for CephFS (File System)"
+    type: "boolean"
+    default: false
+    group: "Storage"
+    if: "storage.ceph.enabled"
+
+  - variable: "storage.ceph.csiFS.fsName"
+    label: "File System Name"
+    description: "CephFS file system name"
+    type: "string"
+    default: ""
+    group: "Storage"
+    if: "storage.ceph.enabled && storage.ceph.csiFS.enabled"
+  - variable: "storage.ceph.customValues"
+    label: "Ceph Custom Values"
+    description: "Custom YAML configuration for Ceph"
+    type: "yaml"
+    default: {}
+    group: "Storage"
+    if: "storage.ceph.enabled"
+
+  # ===============
+  # Additional Services
+  # ===============
+  - variable: "logging.enabled"
+    label: "Enable Logging"
+    description: "Enable logging system"
+    type: "boolean"
+    default: true
+    group: "Services"
+  - variable: "logging.customValues"
+    label: "Logging Custom Values"
+    description: "Custom YAML configuration for logging system"
+    type: "yaml"
+    default: {}
+    group: "Services"
+    if: "logging.enabled"
+
+  - variable: "metallb.enabled"
+    label: "Enable MetalLB"
+    description: "Enable MetalLB load balancer"
+    type: "boolean"
+    default: true
+    group: "Services"
+  - variable: "metallb.customValues"
+    label: "MetalLB Custom Values"
+    description: "Custom YAML configuration for MetalLB"
+    type: "yaml"
+    default: {}
+    group: "Services"
+    if: "metallb.enabled"
+
+  - variable: "monitoring.enabled"
+    label: "Enable Monitoring"
+    description: "Enable monitoring system"
+    type: "boolean"
+    default: false
+    group: "Services"
+  - variable: "monitoring.customValues"
+    label: "Monitoring Custom Values"
+    description: "Custom YAML configuration for monitoring system"
+    type: "yaml"
+    default: {}
+    group: "Services"
+    if: "monitoring.enabled"
+
+  - variable: "ingressNginx.enabled"
+    label: "Enable Ingress NGINX"
+    description: "Enable NGINX ingress controller"
+    type: "boolean"
+    default: true
+    group: "Services"
+  - variable: "ingressNginx.customValues"
+    label: "Ingress NGINX Custom Values"
+    description: "Custom YAML configuration for Ingress NGINX"
+    type: "yaml"
+    default: {}
+    group: "Services"
+    if: "ingressNginx.enabled"
+
+  - variable: "kubevirt.enabled"
+    label: "Enable KubeVirt"
+    description: "Enable KubeVirt virtualization"
+    type: "boolean"
+    default: true
+    group: "Services"
+  - variable: "kubevirt.customValues"
+    label: "KubeVirt Custom Values"
+    description: "Custom YAML configuration for KubeVirt"
+    type: "yaml"
+    default: {}
+    group: "Services"
+    if: "kubevirt.enabled"
+
+  # ===============
+  # SR-IOV Operator
+  # ===============
+  - variable: "sriovOperator.enabled"
+    label: "Enable SR-IOV Operator"
+    description: "Enable SR-IOV operator for high-performance networking"
+    type: "boolean"
+    default: true
+    group: "Services"
+
+  - variable: "sriovOperator.customValues"
+    label: "SR-IOV Operator Custom Values"
+    description: "Custom YAML configuration for SR-IOV Operator"
+    type: "yaml"
+    default: {}
+    group: "Services"
+    if: "sriovOperator.enabled"
+
+  # ===============
+  # Node Config Operator
+  # ===============
+  - variable: "nodeConfigOperator.enabled"
+    label: "Enable Node Config Operator"
+    description: "Enable node configuration operator"
+    type: "boolean"
+    default: true
+    group: "Services"
+
+  - variable: "nodeConfigOperator.managerConfig.aptEnabled"
+    label: "Enable APT in Node Config"
+    description: "Enable APT package management on nodes"
+    type: "boolean"
+    default: true
+    group: "Services"
+    if: "nodeConfigOperator.enabled"
+
+  - variable: "nodeConfigOperator.managerConfig.hostfsEnabled"
+    label: "Enable HostFS in Node Config"
+    description: "Enable host filesystem access"
+    type: "boolean"
+    default: true
+    group: "Services"
+    if: "nodeConfigOperator.enabled"
+
+  - variable: "nodeConfigOperator.customValues"
+    label: "Node Config Operator Custom Values"
+    description: "Custom YAML configuration for Node Config Operator"
+    type: "yaml"
+    default: {}
+    group: "Services"
+    if: "nodeConfigOperator.enabled"
+
+  # ===============
+  # SDN Controller
+  # ===============
+  - variable: "sdnController.enabled"
+    label: "Enable SDN Controller"
+    description: "Enable Software Defined Networking controller"
+    type: "boolean"
+    default: true
+    group: "Services"
+
+  - variable: "sdnController.whitesdnSecrets.password"
+    label: "WhiteSDN Password"
+    description: "Password for WhiteSDN secrets"
+    type: "string"
+    default: "******"
+    group: "Services"
+    if: "sdnController.enabled"
+
+  - variable: "sdnController.customValues"
+    label: "SDN Controller Custom Values"
+    description: "Custom YAML configuration for SDN Controller"
+    type: "yaml"
+    default: {}
+    group: "Services"
+    if: "sdnController.enabled"
+
+  # ===============
+  # NTP Service
+  # ===============
+  - variable: "ntp.enabled"
+    label: "Enable NTP"
+    description: "Enable NTP time synchronization service"
+    type: "boolean"
+    default: true
+    group: "Services"
+
+  - variable: "ntp.customValues"
+    label: "NTP Custom Values"
+    description: "Custom YAML configuration for NTP"
+    type: "yaml"
+    default: {}
+    group: "Services"
+    if: "ntp.enabled"
+
+  # ===============
+  # X509 Certificate Exporter
+  # ===============
+  - variable: "x509CertExporter.enabled"
+    label: "Enable X509 Certificate Exporter"
+    description: "Enable X509 certificate metrics exporter"
+    type: "boolean"
+    default: true
+    group: "Services"
+
+  - variable: "x509CertExporter.customValues"
+    label: "X509 Cert Exporter Custom Values"
+    description: "Custom YAML configuration for X509 Certificate Exporter"
+    type: "yaml"
+    default: {}
+    group: "Services"
+    if: "x509CertExporter.enabled"
+
+  - variable: "registries.enabled"
+    label: "Enable Custom Registries"
+    description: "Enable custom registries configuration"
+    type: "boolean"
+    default: false
+    group: "Services"
+
+  # ===============
+  # Advanced Configuration
+  # ===============
+  - variable: "cluster.etcd.extraArgs"
+    label: "ETCD Extra Arguments"
+    description: "Additional arguments for ETCD (YAML format)"
+    type: array
+    default: []
+    group: "Advanced"
+
+  - variable: "cluster.kubeComponents.kubeApiServer.extraArgs"
+    label: "API Server Extra Arguments"
+    description: "Additional arguments for kube-apiserver (YAML format)"
+    type: array
+    default: []
+    group: "Advanced"
+
+  - variable: "cniConfig.additionalConfig"
+    label: "Additional CNI Configuration"
+    description: "Additional configuration for CNI (YAML format)"
+    type: "yaml"
+    default: "{}"
+    group: "Advanced"

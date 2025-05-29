@@ -1,0 +1,99 @@
+{{ if .Values.logging.enabled }}
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-calico.name" . }}-loggin-crd-helm
+spec:
+  version: "106.0.1-up4.10.0-rancher.4"
+  chartName: rancher-logging-crd
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-calico.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: cattle-logging-system
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+---
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-calico.name" . }}-loggin-helm
+spec:
+  version: "106.0.1-up4.10.0-rancher.4"
+  chartName: rancher-logging
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-calico.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: cattle-logging-system
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+  valuesTemplate: |
+    {{- if and (hasKey .Values.logging "customValues") (not (empty .Values.logging.customValues)) }}
+    {{- toYaml .Values.logging.customValues }}
+    {{- else }}
+    rke2:
+      enabled: true
+    logging:
+      enableRecreateWorkloadOnImmutableFieldChange: true
+      enabled: true
+      clusterFlows:
+        - name: all-logs
+          spec:
+            filters:
+              - record_modifier:
+                  records:
+                    - cluster-name: {{ .Values.cluster.name }}
+            globalOutputRefs:
+              - fluentd-forward
+            match:
+              - select: {}
+      fluentd:
+        bufferStorageVolume:
+          pvc:
+            spec:
+             accessModes:
+               - ReadWriteOnce
+             resources:
+               requests:
+                 storage: 5Gi
+      clusterOutputs:
+        - name: fluentd-forward
+          spec:
+            forward:
+              buffer:
+                flush_interval: 10s
+                retry_forever: false
+                retry_max_interval: '30'
+                type: file
+              compress: gzip
+              require_ack_response: false
+              servers:
+                - host: {{ .Values.logging.clusterOutputs.server.host }}
+                  port: {{ .Values.logging.clusterOutputs.server.port }}
+              tls_insecure_mode: true
+    hostTailer:
+      enabled: true
+      fileTailers:
+        - name: syslog
+          path: /var/log/syslog
+    {{- end }}
+{{- end }}

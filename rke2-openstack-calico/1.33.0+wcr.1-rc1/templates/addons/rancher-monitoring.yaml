@@ -1,0 +1,68 @@
+{{ if .Values.monitoring.enabled }}
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-calico.name" . }}-monitoring-helm
+spec:
+  version: "106.1.1-up69.8.2-rancher.5"
+  chartName: rancher-monitoring
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-calico.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: cattle-monitoring-system
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+  valuesTemplate: |
+    {{- if and (hasKey .Values.monitoring "customValues") (not (empty .Values.monitoring.customValues)) }}
+    {{- toYaml .Values.monitoring.customValues }}
+    {{- else }}
+    alertmanager:
+      enabled: false
+    prometheus:
+      thanosService:
+        enabled: true
+      prometheusSpec:
+        tolerations:
+          - key: "node-role.kubernetes.io/control-plane"
+            operator: "Exists"
+            effect: "NoSchedule"
+        externalLabels:
+          k8s_cluster: {{ .Values.cluster.name }}
+        thanos:
+          objstoreConfig:
+            config:
+              access_key: {{ .Values.monitoring.thanos.objectStorage.accessKey }}
+              bucket: {{ .Values.monitoring.thanos.objectStorage.bucket }}
+              endpoint: {{ .Values.monitoring.thanos.objectStorage.endpoint }}
+              insecure: true
+              secret_key: {{ .Values.monitoring.thanos.objectStorage.secretKey }}
+            type: S3
+      thanosIngress:
+        annotations:
+          nginx.ingress.kubernetes.io/backend-protocol: GRPC
+          nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+          nginx.ingress.kubernetes.io/grpc-backend: 'true'
+          nginx.ingress.kubernetes.io/protocol: h2c
+          nginx.ingress.kubernetes.io/proxy-read-timeout: '160'
+        enabled: true
+        hosts:
+          - {{ .Values.monitoring.thanosIngress.host }}
+        labels: {}
+        nodePort: 30901
+        paths:
+          - /
+        servicePort: 10901
+        tls: null
+        pathType: ImplementationSpecific
+    {{- end }}
+{{- end }}

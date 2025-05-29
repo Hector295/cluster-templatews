@@ -19,7 +19,7 @@ spec:
     wait: true
     waitForJobs: true
   namespace: monitoring
-  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
 ---
 apiVersion: addons.cluster.x-k8s.io/v1alpha1
 kind: HelmChartProxy
@@ -43,7 +43,7 @@ spec:
     wait: true
     waitForJobs: true
   releaseName: nco
-  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
   valuesTemplate: |
     controllerManager:
       manager:
@@ -72,7 +72,7 @@ spec:
     wait: true
     waitForJobs: true
   namespace: metallb-system
-  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
 ---
 apiVersion: addons.cluster.x-k8s.io/v1alpha1
 kind: HelmChartProxy

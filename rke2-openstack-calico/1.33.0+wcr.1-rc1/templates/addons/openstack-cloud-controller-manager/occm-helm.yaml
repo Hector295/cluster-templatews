@@ -1,0 +1,42 @@
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-calico.name" . }}-openstack-ccm-helm
+spec:
+  version: "2.32.0"
+  chartName: openstack-cloud-controller-manager
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-calico.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: kube-system
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+  valuesTemplate: |
+    enabledControllers:
+    - cloud-node
+    - cloud-node-lifecycle
+    nodeSelector:
+    secret:
+      enabled: true
+      name: cloud-config
+      create: false
+    tolerations:
+    - key: node.cloudprovider.kubernetes.io/uninitialized
+      value: "true"
+      effect: NoSchedule
+    - key: node-role.kubernetes.io/control-plane
+      effect: NoSchedule
+    - effect: NoSchedule
+      key: node.cluster.x-k8s.io/uninitialized
+    - key: "node.kubernetes.io/not-ready"
+      effect: NoSchedule

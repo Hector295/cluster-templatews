@@ -1,0 +1,49 @@
+{{ if .Values.storage.openebs.enabled }}
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-calico.name" . }}-openebs-helm
+spec:
+  version: "3.10.0"
+  chartName: openebs
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-calico.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: default
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+  valuesTemplate: |
+    {{- if and (hasKey .Values.storage "openebs") (hasKey .Values.storage.openebs "customValues") (not (empty .Values.storage.openebs.customValues)) }}
+    {{- toYaml .Values.storage.openebs.customValues }}
+    {{- else }}
+    apiserver:
+      enabled: false
+    localprovisioner:
+      replicas: 2
+    ndm:
+      enabled: false
+    ndmOperator:
+      enabled: false
+    analytics:
+      enabled: false
+    webhook:
+      enabled: false
+    snapshotOperator:
+      enabled: false
+    policies:
+      monitoring:
+        enabled: false
+    provisioner:
+      enabled: false
+    {{- end }}
+{{- end }}

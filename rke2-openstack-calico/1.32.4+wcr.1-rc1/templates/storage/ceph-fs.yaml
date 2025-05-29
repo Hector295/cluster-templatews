@@ -1,0 +1,76 @@
+{{ if .Values.storage.cephFS.enabled }}
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-calico.name" . }}-ceph-fs-helm
+spec:
+  chartName: ceph-csi-cephfs
+  version: 3.10.2
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-calico.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: ceph-system
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+  valuesTemplate: |
+    {{- if and (hasKey .Values.storage "cephFS") (hasKey .Values.storage.cephFS "customValues") (not (empty .Values.storage.cephFS.customValues)) }}
+    {{- toYaml .Values.storage.cephFS.customValues }}
+    {{- else }}
+    csiConfig:
+    - clusterID: {{ .Values.storage.cephFS.clusterID }}
+      monitors:
+      {{- range .Values.storage.cephFS.monitorList }}
+      - {{ . }}
+      {{- end }}
+    storageClass:
+      create: true
+      name: default-ceph-fs-sg
+      clusterID: {{ .Values.storage.cephFS.clusterID }}
+      pool: {{ .Values.storage.cephFS.pool }}
+      reclaimPolicy: {{ .Values.storage.cephFS.reclaimPolicy }}
+      mounter: "fuse"
+      fsName: {{ .Values.storage.cephFS.fsName }}
+    secret:
+      create: true
+      adminID: {{ .Values.storage.cephFS.userID }}
+      adminKey: {{ .Values.storage.cephFS.userKey }}
+    readAffinity:
+      enabled: true
+    provisioner:
+      replicaCount: {{ .Values.storage.cephFS.provisionerReplicaCount }}
+      enableHostNetwork: {{ .Values.storage.cephFS.enabledHostNetwork }}
+      httpMetrics:
+        enabled: true
+        containerPort: 8081
+        service:
+          enabled: true
+          servicePort: 8080
+          type: ClusterIP
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/port: "9080"
+    nodeplugin:
+      httpMetrics:
+        enabled: true
+        containerPort: 8081
+        service:
+          enabled: true
+          servicePort: 8080
+          type: ClusterIP
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/port: "9080"
+    logLevel: 5
+    sidecarLogLevel: 1
+    {{- end }}
+{{- end }}

@@ -1,0 +1,98 @@
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: OpenStackMachineTemplate
+metadata:
+  name: {{ .Values.cluster.name }}-control-plane
+  namespace: fleet-default
+  labels:
+    cluster.x-k8s.io/cluster-name: {{ .Values.cluster.name }}
+    cluster.x-k8s.io/role: control-plane
+  {{- include "rke2-openstack-calico.labels" . | nindent 4 }}
+spec:
+  template:
+    spec:
+      identityRef:
+        name: {{ $.Values.cluster.name }}-cloud-config
+        cloudName: openstack
+      flavor: {{ .Values.controlPlaneNodes.flavorName }}
+      image:
+        filter:
+          name: {{ .Values.controlPlaneNodes.imageName }}
+      ports:
+        - network:
+            filter:
+              name: {{ .Values.infraConfig.principalNetwork.netName }}
+          allowedAddressPairs:
+          - ipAddress: {{ .Values.cluster.apiServerVIP }}
+        {{- range .Values.controlPlaneNodes.additionalPorts }}
+        - network:
+            filter:
+              name: {{ .netName }}
+          fixedIPs:
+            - subnet:
+                filter:
+                  name: {{ .subnetName }}
+        {{- end }}
+      # Nombre de la clave SSH para acceder a la instancia
+      sshKeyName: {{ .Values.infraConfig.keypairName }}
+
+      # Grupos de seguridad a nivel de máquina
+      {{- if .Values.controlPlaneNodes.securityGroups }}
+      securityGroups:
+        {{- range .Values.controlPlaneNodes.securityGroups }}
+        - filter:
+            name: {{ . }}
+        {{- end }}
+      {{- end }}
+
+      serverMetadata:
+        - key: cluster
+          value: {{ .Values.cluster.name }}
+      # Etiquetas para los recursos de OpenStack
+      tags:
+      - {{ .Values.cluster.name }}
+      - control-plane
+
+      # Habilitar Config Drive para metadatos - opcional
+      configDrive: true
+      {{- if ne .Values.controlPlaneNodes.hypervisorHostname "" }}
+      schedulerHintAdditionalProperties:
+        - name: "query"
+          value:
+            type: "String"
+            string: "[\"=\", \"$hypervisor_hostname\", \"{{ .Values.controlPlaneNodes.hypervisorHostname }}\"]"
+      {{- end }}
+
+      {{- $rootVolume := .Values.controlPlaneNodes.rootVolume }}
+      {{- if and $rootVolume $rootVolume.sizeGiB }}
+        {{- $sizeInt := int $rootVolume.sizeGiB }}
+        {{- if lt $sizeInt 1 }}
+          {{- fail "controlPlaneNodes.rootVolume.sizeGiB must be positive" }}
+        {{- end }}
+
+      rootVolume:
+        # Tamaño del volumen en GiB
+        sizeGiB: {{ $sizeInt }}
+        {{- if $rootVolume.availabilityZone }}
+        availabilityZone:
+          name: {{ $rootVolume.availabilityZone }}
+        {{- end }}
+      {{- end }}
+
+{{/*      # Dispositivos de bloque adicionales - opcional*/}}
+{{/*      additionalBlockDevices:*/}}
+{{/*      - name: data*/}}
+{{/*        # Tamaño del volumen en GiB*/}}
+{{/*        sizeGiB: 100*/}}
+{{/*        # Configuración del almacenamiento*/}}
+{{/*        storage:*/}}
+{{/*          # Tipo de almacenamiento: Volume o Local*/}}
+{{/*          type: Volume*/}}
+{{/*          # Configuración específica para volúmenes*/}}
+{{/*          volume:*/}}
+{{/*            # Tipo de volumen en Cinder*/}}
+{{/*            type: standard*/}}
+
+{{/*      # Grupo de servidores para colocación*/}}
+{{/*      serverGroup:*/}}
+{{/*        filter:*/}}
+{{/*          name: anti-affinity-group*/}}

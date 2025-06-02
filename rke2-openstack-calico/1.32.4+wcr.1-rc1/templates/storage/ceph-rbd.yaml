@@ -1,0 +1,59 @@
+{{- if .Values.storage.cephRBD.enabled }}
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-calico.name" . }}-ceph-rbd
+spec:
+  chartName: ceph-csi-rbd
+  version: 3.10.1
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-calico.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: ceph-system
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+  valuesTemplate: |
+    {{- if and (hasKey .Values.storage "cephRBD") (hasKey .Values.storage.cephRBD "customValues") (not (empty .Values.storage.cephRBD.customValues)) }}
+    {{- toYaml .Values.storage.ceph.customValues }}
+    {{- else }}
+    csiConfig:
+    - clusterID: {{ .Values.storage.cephRBD.clusterID }}
+      monitors:
+      {{- range .Values.storage.cephRBD.monitorList }}
+      - {{ . }}
+      {{- end }}
+      readAffinity:
+        enabled: true
+        crushLocationLabels:
+          - topology.kubernetes.io/region
+          - topology.kubernetes.io/zone
+    storageClass:
+      create: true
+      name: default-ceph-rbd-sg
+      clusterID: {{ .Values.storage.cephRBD.clusterID }}
+      pool: {{ .Values.storage.cephRBD.pool }}
+      reclaimPolicy: {{ .Values.storage.cephRBD.reclaimPolicy }}
+      encrypted: false
+    secret:
+      create: true
+      userID: {{ .Values.storage.cephRBD.userID }}
+      userKey: {{ .Values.storage.cephRBD.userKey }}
+    readAffinity:
+      enabled: true
+    provisioner:
+      replicaCount: {{ .Values.storage.cephRBD.provisionerReplicaCount }}
+      enableHostNetwork: {{ .Values.storage.cephRBD.enabledHostNetwork }}
+    logLevel: 5
+    sidecarLogLevel: 1
+    {{- end }}
+{{- end }}

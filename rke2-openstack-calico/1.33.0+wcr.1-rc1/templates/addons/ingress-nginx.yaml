@@ -1,0 +1,29 @@
+{{ if .Values.ingressNginx.enabled }}
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-calico.name" . }}-ingress-nginx
+spec:
+  version: "4.12.103"
+  chartName: rke2-ingress-nginx
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-calico.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: kube-system
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+{{- if not (empty .Values.ingressNginx.customValues) }}
+  valuesTemplate: |
+  {{- toYaml .Values.ingressNginx.customValues }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,207 @@
+{{- $replicas := .Values.controlPlaneNodes.quantity }}
+
+{{- if not (eq (mod $replicas 2) 1) }}
+  {{ fail "ERROR: replicas debe ser un número impar" }}
+{{- end }}
+apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+kind: RKE2ControlPlane
+metadata:
+  name: {{ .Values.cluster.name }}-control-plane
+  namespace: fleet-default
+spec:
+  version: v1.33.0+rke2r1
+  replicas: {{ $replicas }}
+{{/*  manifestsConfigMapReference:*/}}
+{{/*    name: kube-vip-static-pod-{{ .Values.cluster.name }}*/}}
+{{/*    namespace: fleet-default*/}}
+  files:
+    - path: /var/lib/rancher/rke2/agent/pod-manifests/kube-vip.yaml
+      owner: root:root
+      permissions: "0644"
+      content: |
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: kube-vip
+          namespace: kube-system
+        spec:
+          containers:
+          - name: kube-vip
+            args:
+            - manager
+            env:
+            - name: vip_arp
+              value: "true"
+            - name: vip_leaderelection
+              value: "true"
+            - name: address
+              value: {{ required "A valid cluster.apiServerVIP required!" .Values.cluster.apiServerVIP }}
+            - name: vip_leaseduration
+              value: "5"
+            - name: vip_renewdeadline
+              value: "3"
+            - name: vip_retryperiod
+              value: "1"
+            - name: cp_enable
+              value: "true"
+            - name: vip_nodename
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            image: "ghcr.io/kube-vip/kube-vip:v0.8.9"
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              capabilities:
+                add:
+                - NET_ADMIN
+                - NET_RAW
+            volumeMounts:
+            - mountPath: /etc/kubernetes/admin.conf
+              name: kubeconfig
+          hostNetwork: true
+          hostAliases:
+          - hostnames:
+            - kubernetes
+            ip: 127.0.0.1
+          volumes:
+          - hostPath:
+              path: "/etc/rancher/rke2/rke2.yaml"
+            name: kubeconfig
+    - path: /var/lib/rancher/rke2/server/manifests/rke2-calico-config.yaml
+      owner: root:root
+      permissions: "0644"
+      content: |
+{{ include "calico.values" . | indent 8 }}
+    {{- if or (include "multus.enabled.bysriov" . | trim ) .Values.cniConfig.multusEnabled }}
+    - path: /var/lib/rancher/rke2/server/manifests/rke2-multus-config.yaml
+      owner: root:root
+      permissions: "0644"
+      content: |
+{{ include "multus.values" . | indent 8 }}
+    {{- end }}
+  machineTemplate:
+    infrastructureRef:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: OpenStackMachineTemplate
+      name: {{ .Values.cluster.name }}-control-plane
+      namespace: fleet-default
+    nodeDrainTimeout: 2m
+  postRKE2Commands:
+    - cp -r /var/lib/rancher/rke2/bin/* /usr/bin/
+    - mkdir -p ~/.kube
+    - cp /etc/rancher/rke2/rke2.yaml /root/.kube/config
+    - chmod 600 /root/.kube/config
+  # Esta configuración se aplica a todos los nodos del plano de control
+  agentConfig:
+    # NodeLabels son etiquetas con las que se registrará el kubelet
+{{/*    nodeLabels:*/}}
+{{/*    {{- range .Values.controlPlaneNodes.labels }}*/}}
+{{/*      - {{ . }}*/}}
+{{/*    {{- end }}*/}}
+
+    # NodeAnnotations son anotaciones que se crean en los nodos después de la fase de bootstrap
+    nodeAnnotations:
+    {{- if .Values.controlPlaneNodes.annotations }}
+      {{- toYaml .Values.controlPlaneNodes.annotations | nindent 4 }}
+    {{- end }}
+    # NodeTaints son taints con los que se registrará el kubelet
+    nodeTaints:
+    {{ range $index, $tain := .Values.controlPlaneNodes.taints }}
+      - "{{ $tain.key }}={{ $tain.value }}:{{ $tain.effect }}"
+    {{- end }}
+
+    # NodeNamePrefix es un prefijo para el nombre del nodo que CAPI generará
+    nodeName: {{ .Values.cluster.prefixNode | default "ws" }}
+
+    # ProtectKernelDefaults define el comportamiento de ajuste del kernel
+    # Si es true, error si los ajustes del kernel son diferentes a los predeterminados de kubelet
+    protectKernelDefaults: false
+
+    # Kubelet contiene configuración personalizada para el proceso de kubelet
+    kubelet:
+      extraArgs:
+      - {{ "provider-id=openstack:///{{ ds.meta_data.uuid }}" }}
+      {{- with $.Values.cluster.kubeComponents.kubelet.extraArgs }}
+      - {{ . }}
+      {{- end }}
+    # KubeProxy contiene configuración personalizada para el proceso de kube-proxy
+    kubeProxy:
+      extraArgs:
+      {{- with $.Values.cluster.kubeComponents.kubeProxy.extraArgs }}
+        - {{ . }}
+      {{- end }}
+
+    # Format especifica el formato de salida de los datos de bootstrap (cloud-config o ignition)
+    format: "cloud-config"
+
+    # AdditionalUserData permite a los usuarios especificar configuración adicional de cloud-init o ignition
+    additionalUserData:
+      data:
+        runcmd: |
+          - echo "nodo creado con cluster-templates" > /etc/whitestack.metadata
+
+  # ServerConfig especifica la configuración específica para los nodos del servidor RKE2
+  serverConfig:
+    # Opciones: none, calico, canal, cilium
+    cni: "calico"
+    # CNIMultusEnable habilita multus como el primer plugin CNI
+    {{- if or (include "multus.enabled.bysriov" . | trim ) .Values.cniConfig.multusEnabled }}
+    cniMultusEnable: true
+    {{- end }}
+
+    # Etcd define la configuración personalizada opcional de ETCD
+    etcd:
+      # ExposeMetrics define la política para la exposición de métricas ETCD
+      exposeMetrics: {{ .Values.cluster.etcd.exposeMetrics }}
+      # BackupConfig define cómo RKE2 hará snapshot de ETCD
+      backupConfig:
+        # DisableAutomaticSnapshots desactiva las snapshot automáticas
+        disableAutomaticSnapshots: {{ .Values.cluster.etcd.backup.disableAutomaticSnapshots }}
+        # SnapshotName es el nombre de la instantánea
+        snapshotName: "etcd-snapshot-{{ .Values.cluster.name }}"
+        # ScheduleCron es la programación cron para las snapshot
+        scheduleCron: "0 */5 * * *"
+        # Retention es el número de snapshot a retener
+        retention: "5"
+      # CustomConfig define la configuración personalizada para ETCD
+      customConfig:
+        extraArgs:
+        {{- with $.Values.cluster.etcd.extraArgs }}
+          - {{ . }}
+        {{- end }}
+    # KubeAPIServer define la configuración personalizada opcional del Kube API Server
+    kubeAPIServer:
+      extraArgs:
+        - 'feature-gates=InPlacePodVerticalScaling=true'
+      {{- with $.Values.cluster.kubeComponents.kubeApiServer.extraArgs }}
+        - {{ . }}
+      {{- end }}
+    # KubeControllerManager define la configuración personalizada opcional del Kube Controller Manager
+    kubeControllerManager:
+      extraArgs:
+        - 'feature-gates=InPlacePodVerticalScaling=true'
+      {{- with $.Values.cluster.kubeComponents.kubeControllerManager.extraArgs }}
+        - {{ . }}
+      {{- end }}
+
+    # KubeScheduler define la configuración personalizada opcional del Kube Scheduler
+    kubeScheduler:
+      extraArgs:
+        - 'feature-gates=InPlacePodVerticalScaling=true'
+      {{- with $.Values.cluster.kubeComponents.kubeShceduler.extraArgs }}
+        - {{ . }}
+      {{- end }}
+    disableComponents:
+      pluginComponents:
+        - "rke2-ingress-nginx"
+      # Componentes de Kubernetes que se desactivarán
+      kubernetesComponents:
+        - "cloudController"
+  registrationMethod: "internal-only-ips"
+  rolloutStrategy:
+    # Type de rollout. Actualmente la única estrategia soportada es "RollingUpdate"
+    type: "RollingUpdate"
+    # RollingUpdate define la configuración para una actualización continua
+    rollingUpdate:
+      # MaxSurge es el número máximo de máquinas que pueden ser programadas por encima del número deseado
+      maxSurge: 1

@@ -1,0 +1,66 @@
+{{ if .Values.storage.longhorn.enabled }}
+---
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-cilium.name" . }}-longhorn-crd
+spec:
+  version: "106.2.0-up1.8.1"
+  chartName: longhorn-crd
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-cilium.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: longhorn-system
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+---
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-cilium.name" . }}-longhorn
+spec:
+  version: "106.2.0-up1.8.1"
+  chartName: longhorn
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-cilium.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: longhorn-system
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+  valuesTemplate: |
+    {{- if and (hasKey .Values.storage "longhorn") (hasKey .Values.storage.longhorn "customValues") (not (empty .Values.storage.longhorn.customValues)) }}
+    {{- toYaml .Values.storage.longhorn.customValues }}
+    {{- else }}
+    persistence:
+      defaultClass: false
+    defaultSettings:
+      replicaSoftAntiAffinity: false
+      autoDeletePodWhenVolumeDetachedUnexpectedly: true
+      allowVolumeCreationWithDegradedAvailability: false
+      replicaAutoBalance: least-effort
+      storageMinimalAvailablePercentage: 25
+      storageOverProvisioningPercentage: 200
+      defaultDataPath: /var/lib/longhorn/
+      nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+    {{- end }}
+{{- end }}

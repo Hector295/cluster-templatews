@@ -1,0 +1,242 @@
+cluster:
+  apiServerVIP: <changeme> # e.g. 10.101.15.245
+  name: "prod-cluster" # cluster name
+  etcd:
+    exposeMetrics: false # ExposeMetrics defines the policy for ETCD metrics exposure
+    backup:
+      disableAutomaticSnapshots: true
+    extraArgs: [] # etcd configuration https://etcd.io/docs/v3.2/op-guide/configuration/
+  # extraArgs:
+  # - election-timeout=1000
+  kubeComponents:
+    kubeControllerManager:
+      extraArgs: [] # extra args for the kube controller manager. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/
+      # extraArgs:
+      # - cloud-provider=external
+    kubeApiServer:
+      extraArgs: [] # extra args for the kube apiserver. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
+    kubeShceduler:
+      extraArgs: [] # extra args for the kube scheduler. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-scheduler/
+    kubeProxy:
+      extraArgs: [] # extra args for the kube proxy. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/
+    kubelet:
+      extraArgs: [] # extra args for the kubelet of all cluster nodes. https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/
+  labels: {} # labels for all cluster nodes
+  annotations: {} # annotations for all cluster nodes
+  addonsRepoCredentials:
+    secret:
+      name: oci-whitecruiser-marketplace
+      namespace: fleet-default
+
+# ===============
+# OpenStack Global Configuration
+# ===============
+infraConfig:
+  authUrl: https://whitecloud.intra.whitestack.com:5000/v3
+  availabilityZones:
+    - HAL1
+  domainName: Default
+  keypairName: Hector
+  region: RegionOne
+  sshUser: ubuntu
+  tenantName: team-products
+  username: hventura
+  principalNetwork:
+    netName: intra-net-products
+    subnetName: net-products
+  password:
+    secret:
+      name: passopenstack
+      namespace: default
+  caCerts:
+    configMap:
+      name: ""
+      namespace: ""
+
+# ===============
+# Control Plane Nodes
+# ===============
+controlPlaneNodes:
+  quantity: 1
+  taints: #"dedicated=large-workloads:NoSchedule"
+    - key: node-role.kubernetes.io/control-plane
+      value: true
+      effect: NoSchedule
+  labels:
+    - "node-role.kubernetes.io/control-plane=true"
+  annotations: {}
+  flavorName: m1.large
+  imageName: Ubuntu 22.04 LTS
+  rootVolume:
+    sizeGiB: "40"
+    availabilityZone: nova
+  securityGroups:
+    - whitecicd-whitemist-deployment_sg
+  hypervisorHostname: "hal1"
+  additionalPorts:
+    - netName: red_whitecruiser_hector
+      subnetName: subred_whitecruiser_hector
+
+# ===============
+# Worker Nodes
+# ===============
+workerNodes:
+  imageName: Ubuntu 22.04 LTS
+  defaults:
+    taints:
+      - key: node-role.kubernetes.io/worker
+        effect: NoSchedule
+    labels:
+      - "node-role.kubernetes.io/worker=true"
+    flavorName: m1.large
+    quantity: 2
+    hypervisorHostname: "hal1"
+    securityGroups:
+      - whitecicd-whitemist-deployment_sg
+    additionalPorts:
+      - netName: red_whitecruiser_hector
+        subnetName: subred_whitecruiser_hector
+    rootVolume:
+      sizeGiB: "50"
+      availabilityZone: nova
+  nodes:
+    - name: worker-node-sin-flavor
+      quantity: 1
+      hypervisorHostname: "hal2"
+      labels:
+        - "node-role.kubernetes.io/worker=true"
+        - "node-role.kubernetes.io/worker-diff=true"
+      rootVolume:
+        sizeGiB: "60"
+        availabilityZone: nova
+
+    - name: worker-node-medium
+      flavorName: m1.medium
+      additionalPorts:
+        - netName: red_whitecruiser_hector
+          subnetName: subred_whitecruiser_hector
+        - netName: red_whitecruiser_ventura
+          subnetName: subred_whitecruiser_ventura
+
+cniConfig:
+  podCIDR: "10.42.0.0/16"
+  serviceCIDR: "10.42.0.0/16"
+  mtu: 1440
+  tunnelProtocol: "VXLAN"
+  masquerade: true
+  bgp: false
+  multusEnabled: false
+  # Configures general installation parameters for Cilium.
+  # here: https://docs.cilium.io/en/stable/configuration/index.html
+  # Values ref. for cilium: https://github.com/rancher/rke2-charts/blob/main/charts/rke2-cilium/rke2-cilium/1.17.300/values.yaml
+  additionalConfig: {}
+
+storage:
+  longhorn:
+    enabled: false
+    customValues: {}
+  openebs: # https://github.com/openebs/charts/blob/main/charts/openebs/values.yaml
+    enabled: true
+    customValues: {}
+  cinder:
+    enabled: false
+    customValues: {}
+  cephFS:
+    enabled: false
+    clusterID: "aaaaaaaa-bbbb-1111-2222-33333ccccccc"
+    monitorList: [ ]
+    # monitorList:
+    #  - "1.2.3.4:6789"
+    #  - "1.2.3.5:6789"
+    pool: "volumes"
+    userID: "admin"
+    userKey: "AAAAAAAAAAAAAAAAAA/BBBBBBBBBBBBBBBBBBB=="
+    provisionerReplicaCount: 3
+    reclaimPolicy: "Retain"
+    enabledHostNetwork: false
+    fsName: ""
+    customValues: {}
+  cephRBD:
+    enabled: false
+    clusterID: "aaaaaaaa-bbbb-1111-2222-33333ccccccc"
+    monitorList: [ ]
+    # monitorList:
+    #  - "1.2.3.4:6789"
+    #  - "1.2.3.5:6789"
+    pool: "volumes"
+    userID: "admin"
+    userKey: "AAAAAAAAAAAAAAAAAA/BBBBBBBBBBBBBBBBBBB=="
+    provisionerReplicaCount: 3
+    reclaimPolicy: "Retain"
+    enabledHostNetwork: false
+    customValues: {}
+logging:
+  enabled: true
+  clusterOutputs:
+    server:
+      host: <changeme>
+      port: 24224
+  customValues: {}
+metallb:
+  enabled: true
+  customValues: {}
+monitoring:
+  enabled: false
+  thanos:
+    objectStorage:
+      accessKey: <changeme>
+      bucket: <changeme>
+      endpoint: <changeme:changeme>
+      secretKey: <changeme>
+  thanosIngress:
+    host: <changeme>
+  customValues: {}
+ingressNginx:
+  enabled: true
+  customValues: {}
+kubevirt:
+  enabled: true
+  customValues: {}
+sriovOperator:
+  enabled: true
+  customValues: {}
+nodeConfigOperator:
+  enabled: true
+  managerConfig:
+    aptEnabled: true
+    hostfsEnabled: true
+  customValues:  {}
+certManager:
+  enabled: false
+  customValues:  {}
+sdnController:
+  enabled: true
+  whitesdnSecrets:
+    password: "kcatsetiw"
+  customValues: { }
+ntp:
+  enabled: true
+  customValues: { }
+x509CertExporter:
+  enabled: true
+  customValues: { }
+
+registries:
+  enabled: false
+#  mirrors:
+#    "docker.io":
+#      endpoints:
+#        - "https://registry.internal.example.com"
+#      rewrite: {}
+#  configs:
+#    "registry.internal.example.com":
+#      auth:
+#        username: "registry-user"
+#        passwordSecret:
+#          name: "registry-creds"
+#          key: "password"
+#      tls:
+#        insecureSkipVerify: false
+#        caSecret:
+#          name: "registry-ca"
+#          key: "ca.crt"

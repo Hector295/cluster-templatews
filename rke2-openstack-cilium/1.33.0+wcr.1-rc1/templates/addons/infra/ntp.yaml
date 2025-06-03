@@ -1,0 +1,29 @@
+{{ if .Values.ntp.enabled }}
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-cilium.name" . }}-ntp
+spec:
+  version: "1.1.2"
+  chartName: ntpd-rs
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-cilium.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: whitestack-tools
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+  valuesTemplate: |
+    {{- if and (hasKey .Values.ntp "customValues") (not (empty .Values.ntp.customValues)) }}
+    {{- toYaml .Values.ntp.customValues }}
+    {{- end }}
+{{- end }}

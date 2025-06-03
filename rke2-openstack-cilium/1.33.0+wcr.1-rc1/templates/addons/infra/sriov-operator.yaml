@@ -1,0 +1,62 @@
+{{ if .Values.sriovOperator.enabled }}
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-cilium.name" . }}-sriov-crd
+spec:
+  version: "1.5.2-up1.5.0"
+  chartName: sriov-crd
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-cilium.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: cattle-sriov-system
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+---
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-cilium.name" . }}-sriov-operator
+spec:
+  version: "1.5.2-up1.5.0"
+  chartName: sriov-network-operator
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-cilium.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: cattle-sriov-system
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+  valuesTemplate: |
+    operator:
+      resourcePrefix: "whitestack.com"
+    sriovOperatorConfig:
+      deploy: true
+      configDaemonNodeSelector: { }
+      logLevel: 2
+      disableDrain: false
+      configurationMode: daemon
+    {{- if and (hasKey .Values.sriovOperator "customValues") (not (empty .Values.sriovOperator.customValues)) }}
+    {{- toYaml .Values.sriovOperator.customValues }}
+    {{- end }}
+---
+{{- end }}

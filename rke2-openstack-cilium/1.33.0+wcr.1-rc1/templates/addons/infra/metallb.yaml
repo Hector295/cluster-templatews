@@ -1,0 +1,29 @@
+{{ if .Values.metallb.enabled }}
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: {{ include "rke2-openstack-cilium.name" . }}-metallb
+spec:
+  version: "0.14.5"
+  chartName: metallb
+  clusterSelector:
+    matchLabels:
+    {{- include "rke2-openstack-cilium.labels" . | nindent 6 }}
+  options:
+    install:
+      createNamespace: true
+    timeout: 5m
+    wait: true
+    waitForJobs: true
+  namespace: metallb-system
+  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  credentials:
+    key: config.json
+    secret:
+      name: {{ .Values.cluster.addonsRepoCredentials.secret.name}}
+      namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
+{{- if not (empty .Values.metallb.customValues) }}
+  valuesTemplate: |
+    {{ toYaml .Values.metallb.customValues }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,25 @@
+{{- range .Values.workerNodes.nodes }}
+apiVersion: baremetal.whitestack.com/v1
+kind: ServerRole
+metadata:
+  name: worker-{{ .hostname }}
+spec:
+  storage:
+  {{- toYaml (.storage | default $.Values.workerNodes.defaults.storage) | nindent 2 }}
+  kernel_options:
+    version: {{ $.Values.infraConfig.kernel.version }}
+  iso_options:
+    image_name: {{ ternary "ubuntu-22.04.4-live-server-amd64-debs.iso" "ubuntu-20.04.4-live-server-amd64.iso" (eq $.Values.infraConfig.image.name "ubuntu22")}}
+  users:
+    {{- range $.Values.infraConfig.users }}
+    - name: {{ .name }}
+      password: {{ .password }}
+      authorized_keys:
+      {{- range .authorized_keys }}
+        - {{ . }}
+      {{- end }}
+      sudoers: "ALL=(ALL) NOPASSWD:ALL"
+    {{- end }}
+  timezone: UTC
+---
+{{- end }}

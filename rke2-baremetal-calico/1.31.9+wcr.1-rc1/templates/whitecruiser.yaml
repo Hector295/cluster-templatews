@@ -1,0 +1,8 @@
+apiVersion: baremetal.whitestack.com/v1
+kind: WhiteCruiser
+metadata:
+  name: whitecruiser-{{ .Values.cluster.name }}
+spec:
+  rancherServerURL: {{ (lookup "management.cattle.io/v3" "Setting" "" "server-url").value }}
+  rancherApiKey: {{ (lookup "v1" "Secret" "fleet-local" "local-kubeconfig").data.token | b64dec | quote }}
+  rancherClusterName: {{ .Values.cluster.name }}

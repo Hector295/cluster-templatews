@@ -1,0 +1,171 @@
+apiVersion: provisioning.cattle.io/v1
+kind: Cluster
+metadata:
+  labels:
+{{- include "rke2-baremetal-calico.labels" . | nindent 4 }}
+    {{- if .Values.cluster.labels }}
+    {{- toYaml .Values.cluster.labels | nindent 4 }}
+    {{- end }}
+  {{- if .Values.cluster.annotations }}
+  annotations:
+{{ toYaml .Values.cluster.annotations | indent 4 }}
+  {{- end }}
+  name: {{ .Values.cluster.name }}
+  namespace: fleet-default
+spec:
+  kubernetesVersion: v1.31.9+rke2r1
+  localClusterAuthEndpoint: {}
+  # redeploySystemAgentGeneration:
+  rkeConfig:
+    chartValues:
+      rke2-calico:
+        {{- if .Values.cniConfig.additionalConfig }}
+        {{- toYaml .Values.cniConfig.additionalConfig }}
+        {{- else }}
+        installation:
+          calicoNetwork:
+            {{- if eq .Values.cniConfig.bgp true }}
+            bgp: Enabled
+            {{- end }}
+            {{- if not (hasKey .Values.cniConfig.additionalConfig "mtu") }}
+            mtu: {{ .Values.cniConfig.mtu | default 1440 }}
+            {{- end }}
+            ipPools:
+              - cidr: {{ .Values.cniConfig.podCIDR }}
+                blockSize: 26
+                disableBGPExport: true
+                {{- if .Values.cniConfig.bgp }}
+                encapsulation: IPIP
+                {{- else }}
+                encapsulation: {{ .Values.cniConfig.tunnelProtocol | upper }}
+                {{- end }}
+                {{- if eq .Values.cniConfig.masquerade true }}
+                natOutgoing: Enabled
+                {{- end }}
+                nodeSelector: all()
+        {{- end }}
+      {{- if .Values.cniConfig.multusEnabled }}
+      rke2-multus:
+        rke2-whereabouts:
+          enabled: true
+      {{- end }}
+      {{- if not (empty .Values.ingressNginx.customValues) }}
+      rke2-ingress-nginx:
+      {{- toYaml .Values.ingressNginx.customValues }}
+      {{- end }}
+    etcd:
+      disableSnapshots: {{ .Values.cluster.etcd.backup.disableAutomaticSnapshots }}
+      snapshotRetention: 5
+      snapshotScheduleCron: 0 */5 * * *
+    machineGlobalConfig:
+      {{- if .Values.cniConfig.multusEnabled }}
+      cni: "multus,calico"
+      {{- else }}
+      cni: calico
+      {{- end }}
+      {{- if not .Values.ingressNginx.enabled }}
+      disable:
+        - rke2-ingress-nginx
+      {{- end }}
+      cluster-cidr: {{ .Values.cniConfig.podCIDR }}
+      service-cidr: {{ .Values.cniConfig.serviceCIDR }}
+      disable-scheduler: false
+      disable-kube-proxy: false
+      {{- if .Values.cluster.etcd.exposeMetrics }}
+      etcd-expose-metrics: {{ .Values.cluster.etcd.exposeMetrics }}
+      {{- end }}
+      {{- if not (empty .Values.cluster.kubeComponents.kubeControllerManager.extraArgs) }}
+      kube-controller-manager-arg:
+        {{- with $.Values.cluster.kubeComponents.kubeControllerManager.extraArgs }}
+        - {{ . }}
+        {{- end }}
+      {{- end }}
+      {{- if not (empty .Values.cluster.kubeComponents.kubeShceduler.extraArgs) }}
+      kube-scheduler-arg:
+        {{- with $.Values.cluster.kubeComponents.kubeShceduler.extraArgs }}
+        - {{ . }}
+        {{- end }}
+      {{- end }}
+      {{- if not (empty .Values.cluster.kubeComponents.kubeApiServer.extraArgs) }}
+      kube-apiserver-arg:
+        {{- with $.Values.cluster.kubeComponents.kubeApiServer.extraArgs }}
+        - {{ . }}
+        {{- end }}
+      {{- end }}
+      {{- if not (empty .Values.cluster.kubeComponents.kubeProxy.extraArgs) }}
+      kubelet-proxy-arg:
+        {{- with $.Values.cluster.kubeComponents.kubeProxy.extraArgs }}
+        - {{ . }}
+        {{- end }}
+      {{- end }}
+    machineSelectorConfig:
+      - config:
+          {{- if not (empty .Values.cluster.kubeComponents.kubelet.extraArgs) }}
+          kubelet-arg:
+            {{- with $.Values.cluster.kubeComponents.kubelet.extraArgs }}
+            - {{ . }}
+            {{- end }}
+          {{- end }}
+          {{- if not (empty .Values.cluster.etcd.extraArgs) }}
+          etcd-arg:
+            {{- with $.Values.cluster.etcd.extraArgs }}
+            - {{ . }}
+            {{- end }}
+          {{- end }}
+          protect-kernel-defaults: false
+    {{- if .Values.registries.enabled }}
+    registries:
+      configs:
+        {{- range .Values.registries.configs }}
+        {{ .name }}:
+          authConfigSecretName: {{ .authConfigSecretName }}
+          caBundle: {{ .caBundle }}
+          insecureSkipVerify: {{ .insecureSkipVerify }}
+          tlsSecretName: {{ .tlsSecretName }}
+        {{- end }}
+      {{- if .Values.registries.mirrors }}
+      mirrors:
+        {{- range .Values.registries.mirrors }}
+        {{ .name | quote }}:
+          endpoint:
+            {{- range .endpoints }}
+            - {{ . }}
+            {{- end }}
+          {{- if .rewrite }}
+          rewrite:
+            {{- range $key, $value := .rewrite }}
+            "{{ $key }}": "{{ $value }}"
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    # rotateCertificates:
+    # rotateEncryptionKeys:
+    upgradeStrategy:
+      controlPlaneConcurrency: '1'
+      controlPlaneDrainOptions:
+        deleteEmptyDirData: true
+        disableEviction: false
+        enabled: false
+        force: false
+        gracePeriod: -1
+        ignoreDaemonSets: true
+        ignoreErrors: false
+        postDrainHooks: null
+        preDrainHooks: null
+        skipWaitForDeleteTimeoutSeconds: 0
+        timeout: 120
+      workerConcurrency: 10%
+      workerDrainOptions:
+        deleteEmptyDirData: true
+        disableEviction: false
+        enabled: false
+        force: false
+        gracePeriod: -1
+        ignoreDaemonSets: true
+        ignoreErrors: false
+        postDrainHooks: null
+        preDrainHooks: null
+        skipWaitForDeleteTimeoutSeconds: 0
+        timeout: 120

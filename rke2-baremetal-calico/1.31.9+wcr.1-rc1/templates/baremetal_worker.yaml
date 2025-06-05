@@ -1,0 +1,31 @@
+{{- range .Values.workerNodes.nodes }}
+apiVersion: baremetal.whitestack.com/v1
+kind: BaremetalServer
+metadata:
+  name: worker-{{ .hostname }}-{{ $.Values.cluster.name }}
+  annotations:
+    skip-diff-checker: "true"
+spec:
+  clusterKind: WhiteCruiser
+  rancherAgentParameters: "--label openebs.io/engine=mayastor"
+  serverSelector: whitecruiser-{{ $.Values.cluster.name }}
+  hostname: {{ .hostname }}
+  softwareManagement:
+    address: {{ .network.primaryInterface.address }}
+    user: {{ ($.Values.infraConfig.users | first).name  }}
+    password: {{ ($.Values.infraConfig.users | first).password  }}
+  hardwareManagement:
+    type: {{ .bmc.provider | default $.Values.workerNodes.defaults.bmc.provider }}
+    address: {{ .bmc.address }}
+    {{- $secretNamespace := dig "bmc" "credentialsSecret" "namespace" $.Values.workerNodes.defaults.bmc.credentialsSecret.namespace . }}
+    {{- $secretName := dig "bmc" "credentialsSecret" "name" $.Values.workerNodes.defaults.bmc.credentialsSecret.name . }}
+    {{- $secret := lookup "v1" "Secret" $secretNamespace  $secretName }}
+    user: {{ $secret.data.user | b64dec | quote }}
+    password: {{ $secret.data.password | b64dec | quote }}
+  rawNetplan:
+{{- toYaml .network.netplan | nindent 4 }}
+  role: worker-{{ .hostname }}
+  clusterRoles:
+    - worker
+---
+{{- end }}

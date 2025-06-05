@@ -1,0 +1,49 @@
+{{- if .Values.storage.cephRBD.enabled }}
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: {{ include "rke2-baremetal-calico.name" . }}-ceph-rbd
+  namespace: fleet-default
+spec:
+  chart: "ceph-csi-rbd"
+  repoName: "whitecruiser-apps"
+  releaseName: "ceph-csi-rbd"
+  version: 3.10.1
+  defaultNamespace: "ceph-system"
+  targets:
+    - clusterName: {{ .Values.cluster.name }}
+  values:
+    {{- if and (hasKey .Values.storage "cephRBD") (hasKey .Values.storage.cephRBD "customValues") (not (empty .Values.storage.cephRBD.customValues)) }}
+    {{- toYaml .Values.storage.ceph.customValues }}
+    {{- else }}
+    csiConfig:
+    - clusterID: {{ .Values.storage.cephRBD.clusterID }}
+      monitors:
+      {{- range .Values.storage.cephRBD.monitorList }}
+      - {{ . }}
+      {{- end }}
+      readAffinity:
+        enabled: true
+        crushLocationLabels:
+          - topology.kubernetes.io/region
+          - topology.kubernetes.io/zone
+    storageClass:
+      create: true
+      name: default-ceph-rbd-sg
+      clusterID: {{ .Values.storage.cephRBD.clusterID }}
+      pool: {{ .Values.storage.cephRBD.pool }}
+      reclaimPolicy: {{ .Values.storage.cephRBD.reclaimPolicy }}
+      encrypted: false
+    secret:
+      create: true
+      userID: {{ .Values.storage.cephRBD.userID }}
+      userKey: {{ .Values.storage.cephRBD.userKey }}
+    readAffinity:
+      enabled: true
+    provisioner:
+      replicaCount: {{ .Values.storage.cephRBD.provisionerReplicaCount }}
+      enableHostNetwork: {{ .Values.storage.cephRBD.enabledHostNetwork }}
+    logLevel: 5
+    sidecarLogLevel: 1
+    {{- end }}
+{{- end }}

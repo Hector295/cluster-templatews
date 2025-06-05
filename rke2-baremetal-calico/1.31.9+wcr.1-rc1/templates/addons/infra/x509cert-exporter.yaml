@@ -1,0 +1,41 @@
+{{ if .Values.sdnController.enabled }}
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: {{ include "rke2-baremetal-calico.name" . }}-x509-certificate-exporter
+  namespace: fleet-default
+spec:
+  version: "3.18.1"
+  chart: x509-certificate-exporter
+  releaseName: x509-certificate-exporter
+  repoName: "whitecruiser-apps"
+  defaultNamespace: monitoring
+  targets:
+    - clusterName: {{ .Values.cluster.name }}
+  values:
+    image:
+      pullPolicy: IfNotPresent
+    psp:
+      create: false
+    rbac:
+      create: true
+    podExtraLabels: { }
+    hostPathsExporter:
+      podAnnotations: { }
+      watchDirectories: [ ]
+      watchFiles: [ ]
+      watchKubeconfFiles: [ ]
+      daemonSets:
+        cp:
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: ""
+          tolerations:
+            - effect: NoSchedule
+              key: node-role.kubernetes.io/control-plane
+              operator: Exists
+    rbacProxy:
+      enabled: false
+    {{- if and (hasKey .Values.x509CertExporter "customValues") (not (empty .Values.x509CertExporter.customValues)) }}
+    {{- toYaml .Values.x509CertExporter.customValues }}
+    {{- end }}
+{{- end }}

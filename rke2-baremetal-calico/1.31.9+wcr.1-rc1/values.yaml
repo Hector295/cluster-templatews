@@ -1,0 +1,273 @@
+cluster:
+  name: "prod-cluster" # cluster name
+  etcd:
+    exposeMetrics: false # ExposeMetrics defines the policy for ETCD metrics exposure
+    backup:
+      disableAutomaticSnapshots: true
+    extraArgs: [] # etcd configuration https://etcd.io/docs/v3.2/op-guide/configuration/
+  # extraArgs:
+  # - election-timeout=1000
+  kubeComponents:
+    kubeControllerManager:
+      extraArgs: [] # extra args for the kube controller manager. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/
+      # extraArgs:
+      # - cloud-provider=external
+    kubeApiServer:
+      extraArgs: [] # extra args for the kube apiserver. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
+    kubeShceduler:
+      extraArgs: [] # extra args for the kube scheduler. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-scheduler/
+    kubeProxy:
+      extraArgs: [] # extra args for the kube proxy. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/
+    kubelet:
+      extraArgs: [] # extra args for the kubelet of all cluster nodes. https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/
+  labels: {} # labels for all cluster nodes
+  annotations: {} # annotations for all cluster nodes
+
+# ===============
+# Baremetal Global Configuration
+# ===============
+infraConfig:
+  users:
+    - name: whitestack
+      password: whitestack
+      authorized_keys:
+        - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDyQwCd7gKxObBzDV357Nl+oQwMggFg0CseB4NtGvmusH3RLUXRuQqJQ5Keu+FKlRfG0QmBT+WEmr5rLN+LDbGKM54yAUDiJV9lWroOWaSbU8ynO9ZwXhPKgfnfvG/HmGTkfGpUQkfZYOSDetbfKJ7+mFOjDTvncgdErL14JbTXLFQ6vhqxk08a8sdCAxdiX+IJ4fy7jJW3TNqmH3dpE1OfKQe+CwKaksF0wjjXu4O+xj4BWv5a0V3ePOnGD9EVze3HZWkjUGmysGNjW6IayHydIDt1JB9Q6d+pMARQrZ6R4b6ySJ21vv7FwaIZ65kHxT/UMk9fbffhLxV0Dj3s5HKbwZoZU5HhAhj74zcptjer72YygdFs1uf8h5FIrmYAXgYuDfVN76nAUls2PC/jE79xtNxLxP045VerWZVg2fXZRKgqw++Wa5sd0IYmm++SVNV4I/VGSmLmTuxe5oWMPs4FtE78EQkkNYzch3cghxJjsgZiP/KMXlrtEfhInxU3YNc= hector@hector"
+        - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCSIj+UglgxRvkwojlO4ZphGAgvhhrUm/Au165pE472VI5Wt5D5AGiCzt4Gw6J7P/LN+qY/XvP+T6hOf+OERg1AYNSNVX+3YszQBQjDP76PkjsNiNqk2mI1KoLhKzHUBP1mM349mwOQS40Wv+MdoF6YEYzgNVECxPExCo2pjRd6J65exiK5IfJamZVlyxwkDqiWjvhUdRKBc2PqyU7BEYltAmzzVsXiU+dgC4E5dce+OKmtoc0r137CI220TdkQMgeGHojgVQ7bfgovRajLoAcf3ntB2V7gU9gIY2rRKxqbHKyXWWIb/Rb2+w134avbxaFv8CTgTlE8N0h/vHL01Ta0dglQ16EyiC065NN+XctRPUXlaoiOBEN3OeArIjRsmLztleWtLG4/yzslG9V8TlTa0+pMArUeQICRl2OvqGUGmnE6ZIbhxJWhrWGRMbPTklKk2WwiXlc9pcN8mrwfdxYUzUYvn+SOHAXBqTL0N8MDVwcEyNLovpYW8skWWcPXQUH8HkmHlIzwiZd+qXSKOJAcuwcfGwk7MUWOP7NNpD3ltrnNClVIzL8BmaaCuABnNs+Y6rYhlNrscOIcrOH7a3Nbcz2/l2vPI9kvDM0BV8mDxwpOS/FS0BhqA8ry7hfbdLk02lVbXDbQJrAboSZzcR6iXLGAvoYmtNYVttc9t49ahw== luis@tt"
+  image: # propiedades de la imagen base para los nodos
+    url: http://10.100.100.2/ubuntu-22.iso
+    name: ubuntu22 # ubuntu20
+  kernel:
+    version: 6.5-generic # version de kernel para los nodos
+
+# ===============
+# Control Plane Nodes
+# ===============
+controlPlaneNodes:
+  defaults: # configuración por defecto para los nodos control-plane
+    taints:
+      - key: node-role.kubernetes.io/control-plane
+        effect: NoSchedule
+    labels:
+      node-role.kubernetes.io/control-plane: ""
+    storage:
+      - vg_name: vg-root
+        disks:
+          - sda
+          - sdb
+        raid_type: 1
+        boot: uefi
+        lvs:
+          - name: lv-root
+            size: 80GB
+            fs_type: ext4
+            mount: /
+          - name: lv-logs
+            size: 20GB
+            fs_type: ext4
+            mount: /var/log
+          - name: lv-tmp
+            size: 2GB
+            fs_type: ext4
+            mount: /var/tmp
+          - name: lv-audit
+            size: 5GB
+            fs_type: ext4
+            mount: /var/log/audit
+    bmc:
+      provider: ilo
+      credentialsSecret:
+        name: "baremetal-cluster"
+        namespace: "default"
+  nodes: # lista de nodos control-plane
+    - hostname: node-01
+      bmc:
+        provider: ilo
+        address: 10.40.12.10
+        credentialsSecret:
+          name: "baremetal-cluster-1"
+          namespace: "default"
+      network:
+        primaryInterface:
+          address: 10.100.17.118
+        netplan:
+          network:
+            ethernets:
+              eno1:
+                addresses:
+                  - 10.100.2.150/24
+                routes:
+                  - to: default
+                    via: 10.100.2.1
+
+# ===============
+# Worker Nodes
+# ===============
+workerNodes:
+  defaults:
+    taints:
+      - key: node-role.kubernetes.io/worker
+        effect: NoSchedule
+    labels:
+      node-role.kubernetes.io/worker: ""
+    storage:
+      - vg_name: vg-root
+        disks:
+          - sda
+          - sdb
+        raid_type: 1
+        boot: uefi
+        lvs:
+          - name: lv-root
+            size: 80GB
+            fs_type: ext4
+            mount: /
+          - name: lv-logs
+            size: 20GB
+            fs_type: ext4
+            mount: /var/log
+          - name: lv-tmp
+            size: 2GB
+            fs_type: ext4
+            mount: /var/tmp
+          - name: lv-audit
+            size: 5GB
+            fs_type: ext4
+            mount: /var/log/audit
+    bmc:
+      provider: ilo
+      credentialsSecret:
+        name: "baremetal-worker-cluster"
+        namespace: "default"
+  nodes:
+    - hostname: worker-node-01
+      bmc:
+        address: 10.100.19.132
+      network:
+        primaryInterface:
+          address: 10.100.20.198
+        netplan:
+          network:
+            ethernets:
+              eno2:
+                addresses:
+                  - 10.100.2.151/24
+                routes:
+                  - to: default
+                    via: 10.100.2.1
+
+cniConfig:
+  podCIDR: "10.42.0.0/16"
+  serviceCIDR: "10.42.0.0/16"
+  mtu: 1440
+  tunnelProtocol: "VXLAN"
+  masquerade: true
+  bgp: false
+  multusEnabled: true
+  # Configures general installation parameters for Calico. Schema is based
+  # on the operator.tigera.io/Installation API documented
+  # here: https://docs.tigera.io/calico/latest/reference/installation/api#operator.tigera.io/v1.InstallationSpec
+  # Values ref. for calico https://github.com/rancher/rke2-charts/blob/main/charts/rke2-calico/rke2-calico/v3.30.100/values.yaml
+  additionalConfig: {}
+
+storage:
+  longhorn:
+    enabled: true
+    customValues: {}
+  openebs: # https://github.com/openebs/charts/blob/main/charts/openebs/values.yaml
+    enabled: false
+    customValues: {}
+  cephFS:
+    enabled: false
+    clusterID: "aaaaaaaa-bbbb-1111-2222-33333ccccccc"
+    monitorList: [ ]
+    # monitorList:
+    #  - "1.2.3.4:6789"
+    #  - "1.2.3.5:6789"
+    pool: "volumes"
+    userID: "admin"
+    userKey: "AAAAAAAAAAAAAAAAAA/BBBBBBBBBBBBBBBBBBB=="
+    provisionerReplicaCount: 3
+    reclaimPolicy: "Retain"
+    enabledHostNetwork: false
+    fsName: ""
+    customValues: {}
+  cephRBD:
+    enabled: false
+    clusterID: "aaaaaaaa-bbbb-1111-2222-33333ccccccc"
+    monitorList: [ ]
+    # monitorList:
+    #  - "1.2.3.4:6789"
+    #  - "1.2.3.5:6789"
+    pool: "volumes"
+    userID: "admin"
+    userKey: "AAAAAAAAAAAAAAAAAA/BBBBBBBBBBBBBBBBBBB=="
+    provisionerReplicaCount: 3
+    reclaimPolicy: "Retain"
+    enabledHostNetwork: false
+    customValues: {}
+logging:
+  enabled: true
+  clusterOutputs:
+    server:
+      host: <changeme>
+      port: 24224
+  customValues: {}
+metallb:
+  enabled: true
+  customValues: {}
+monitoring:
+  enabled: false
+  thanos:
+    objectStorage:
+      accessKey: <changeme>
+      bucket: <changeme>
+      endpoint: <changeme:changeme>
+      secretKey: <changeme>
+  thanosIngress:
+    host: <changeme>
+  customValues: {}
+ingressNginx:
+  enabled: true
+  customValues: {}
+kubevirt:
+  enabled: true
+  customValues: {}
+sriovOperator:
+  enabled: true
+  customValues: {}
+nodeConfigOperator:
+  enabled: true
+  managerConfig:
+    aptEnabled: true
+    hostfsEnabled: true
+  customValues:  {}
+certManager:
+  enabled: false
+  customValues:  {}
+sdnController:
+  enabled: true
+  whitesdnSecrets:
+    password: "kcatsetiw"
+  customValues: { }
+ntp:
+  enabled: true
+  customValues: { }
+x509CertExporter:
+  enabled: true
+  customValues: { }
+
+registries:
+  enabled: false
+#registries:
+#  enabled: true
+#   configs:
+#    - name: registry.example.com
+#      authConfigSecretName: registry-creds
+#      caBundle: ''
+#      insecureSkipVerify: false
+#      tlsSecretName: ''
+#   mirrors:
+#     - name: docker.io
+#       endpoints: ['registry.example.com']
+#   rewrite:
+#      "^rancher/(.*)": "mirrorproject/rancher-images/$1"

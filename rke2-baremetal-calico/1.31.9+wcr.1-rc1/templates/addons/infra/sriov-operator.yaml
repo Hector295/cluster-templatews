@@ -1,0 +1,42 @@
+{{ if .Values.sriovOperator.enabled }}
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: {{ include "rke2-baremetal-calico.name" . }}-sriov-crd
+  namespace: fleet-default
+spec:
+  version: "1.5.2-up1.5.0"
+  chart: sriov-crd
+  releaseName: sriov-crd
+  repoName: "whitecruiser-apps"
+  targets:
+    - clusterName: {{ .Values.cluster.name }}
+  defaultNamespace: cattle-sriov-system
+---
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: {{ include "rke2-baremetal-calico.name" . }}-sriov-operator
+  namespace: fleet-default
+spec:
+  version: "1.5.2-up1.5.0"
+  chart: sriov-network-operator
+  releaseName: sriov-network-operator
+  repoName: "whitecruiser-apps"
+  targets:
+    - clusterName: {{ .Values.cluster.name }}
+  defaultNamespace: cattle-sriov-system
+  values:
+    operator:
+      resourcePrefix: "whitestack.com"
+    sriovOperatorConfig:
+      deploy: true
+      configDaemonNodeSelector: { }
+      logLevel: 2
+      disableDrain: false
+      configurationMode: daemon
+    {{- if and (hasKey .Values.sriovOperator "customValues") (not (empty .Values.sriovOperator.customValues)) }}
+    {{- toYaml .Values.sriovOperator.customValues }}
+    {{- end }}
+---
+{{- end }}

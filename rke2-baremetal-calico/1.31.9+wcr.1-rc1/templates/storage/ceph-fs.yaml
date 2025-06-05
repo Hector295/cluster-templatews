@@ -1,0 +1,66 @@
+{{ if .Values.storage.cephFS.enabled }}
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: {{ include "rke2-baremetal-calico.name" . }}-ceph-fs
+  namespace: fleet-default
+spec:
+  chart: "ceph-csi-cephfs"
+  repoName: "whitecruiser-apps"
+  releaseName: "ceph-csi-cephfs"
+  version: 3.10.2
+  defaultNamespace: "ceph-system"
+  targets:
+    - clusterName: {{ .Values.cluster.name }}
+  values:
+    {{- if and (hasKey .Values.storage "cephFS") (hasKey .Values.storage.cephFS "customValues") (not (empty .Values.storage.cephFS.customValues)) }}
+    {{- toYaml .Values.storage.cephFS.customValues }}
+    {{- else }}
+    csiConfig:
+    - clusterID: {{ .Values.storage.cephFS.clusterID }}
+      monitors:
+      {{- range .Values.storage.cephFS.monitorList }}
+      - {{ . }}
+      {{- end }}
+    storageClass:
+      create: true
+      name: default-ceph-fs-sg
+      clusterID: {{ .Values.storage.cephFS.clusterID }}
+      pool: {{ .Values.storage.cephFS.pool }}
+      reclaimPolicy: {{ .Values.storage.cephFS.reclaimPolicy }}
+      mounter: "fuse"
+      fsName: {{ .Values.storage.cephFS.fsName }}
+    secret:
+      create: true
+      adminID: {{ .Values.storage.cephFS.userID }}
+      adminKey: {{ .Values.storage.cephFS.userKey }}
+    readAffinity:
+      enabled: true
+    provisioner:
+      replicaCount: {{ .Values.storage.cephFS.provisionerReplicaCount }}
+      enableHostNetwork: {{ .Values.storage.cephFS.enabledHostNetwork }}
+      httpMetrics:
+        enabled: true
+        containerPort: 8081
+        service:
+          enabled: true
+          servicePort: 8080
+          type: ClusterIP
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/port: "9080"
+    nodeplugin:
+      httpMetrics:
+        enabled: true
+        containerPort: 8081
+        service:
+          enabled: true
+          servicePort: 8080
+          type: ClusterIP
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/port: "9080"
+    logLevel: 5
+    sidecarLogLevel: 1
+    {{- end }}
+{{- end }}

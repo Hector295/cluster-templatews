@@ -1,0 +1,39 @@
+{{ if .Values.storage.openebs.enabled }}
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: {{ include "rke2-baremetal-calico.name" . }}-openebs
+  namespace: fleet-default
+spec:
+  version: "3.10.0"
+  chart: openebs
+  releaseName: openebs
+  targets:
+    - clusterName: {{ .Values.cluster.name }}
+  defaultNamespace: default
+  repoName: "whitecruiser-apps"
+  values:
+{{- if and (hasKey .Values.storage "openebs") (hasKey .Values.storage.openebs "customValues") (not (empty .Values.storage.openebs.customValues)) }}
+{{- toYaml .Values.storage.openebs.customValues | nindent 4 }}
+{{- else }}
+    apiserver:
+      enabled: false
+    localprovisioner:
+      replicas: 2
+    ndm:
+      enabled: false
+    ndmOperator:
+      enabled: false
+    analytics:
+      enabled: false
+    webhook:
+      enabled: false
+    snapshotOperator:
+      enabled: false
+    policies:
+      monitoring:
+        enabled: false
+    provisioner:
+      enabled: false
+{{- end }}
+{{- end }}

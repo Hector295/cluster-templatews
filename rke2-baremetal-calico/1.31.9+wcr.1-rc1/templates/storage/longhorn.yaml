@@ -1,0 +1,46 @@
+{{ if .Values.storage.longhorn.enabled }}
+---
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: {{ include "rke2-baremetal-calico.name" . }}-longhorn-crd
+  namespace: fleet-default
+spec:
+  version: "106.2.0-up1.8.1"
+  chart: longhorn-crd
+  releaseName: longhorn-crd
+  repoName: "whitecruiser-apps"
+  targets:
+    - clusterName: {{ .Values.cluster.name }}
+  defaultNamespace: longhorn-system
+---
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: {{ include "rke2-baremetal-calico.name" . }}-longhorn
+  namespace: fleet-default
+spec:
+  version: "106.2.0-up1.8.1"
+  chart: longhorn
+  releaseName: longhorn
+  repoName: "whitecruiser-apps"
+  targets:
+    - clusterName: {{ .Values.cluster.name }}
+  defaultNamespace: longhorn-system
+  values:
+    {{- if and (hasKey .Values.storage "longhorn") (hasKey .Values.storage.longhorn "customValues") (not (empty .Values.storage.longhorn.customValues)) }}
+    {{- toYaml .Values.storage.longhorn.customValues }}
+    {{- else }}
+    persistence:
+      defaultClass: false
+    defaultSettings:
+      replicaSoftAntiAffinity: false
+      autoDeletePodWhenVolumeDetachedUnexpectedly: true
+      allowVolumeCreationWithDegradedAvailability: false
+      replicaAutoBalance: least-effort
+      storageMinimalAvailablePercentage: 25
+      storageOverProvisioningPercentage: 200
+      defaultDataPath: /var/lib/longhorn/
+      nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+    {{- end }}
+{{- end }}

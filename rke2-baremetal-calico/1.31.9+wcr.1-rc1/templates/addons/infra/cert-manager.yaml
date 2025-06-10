@@ -1,0 +1,18 @@
+{{ if or .Values.nodeConfigOperator.enabled .Values.certManager.enabled }}
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: {{ include "rke2-baremetal-calico.name" . }}-cert-manager
+spec:
+  version: "v1.17.1"
+  chart: cert-manager
+  defaultNamespace: cert-manager
+  releaseName: cert-manager
+  repoName: "whitecruiser-apps"
+  targets:
+    - clusterName: {{ .Values.cluster.name }}
+  values:
+{{- if and (hasKey .Values.certManager "customValues") (not (empty .Values.certManager.customValues)) }}
+{{- toYaml .Values.certManager.customValues | nindent 4 }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,76 @@
+{{ if .Values.monitoring.enabled }}
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: {{ include "rke2-baremetal-calico.name" . }}-monitoring
+  namespace: fleet-default
+spec:
+  version: "106.1.1-up69.8.2-rancher.5"
+  chart: rancher-monitoring
+  releaseName: rancher-monitoring
+  defaultNamespace: cattle-monitoring-system
+  repoName: "whitecruiser-apps"
+  targets:
+    - clusterName: {{ .Values.cluster.name }}
+  values:
+{{- if and (hasKey .Values.monitoring "customValues") (not (empty .Values.monitoring.customValues)) }}
+{{- toYaml .Values.monitoring.customValues | nindent 4 }}
+{{- else }}
+    alertmanager:
+      enabled: false
+    prometheus:
+      thanosService:
+        enabled: true
+      prometheusSpec:
+        tolerations:
+          - key: "node-role.kubernetes.io/control-plane"
+            operator: "Exists"
+            effect: "NoSchedule"
+        externalLabels:
+          k8s_cluster: {{ .Values.cluster.name }}
+        thanos:
+          objstoreConfig:
+            config:
+              access_key: {{ .Values.monitoring.thanos.objectStorage.accessKey }}
+              bucket: {{ .Values.monitoring.thanos.objectStorage.bucket }}
+              endpoint: {{ .Values.monitoring.thanos.objectStorage.endpoint }}
+              insecure: true
+              secret_key: {{ .Values.monitoring.thanos.objectStorage.secretKey }}
+            type: S3
+      thanosIngress:
+        annotations:
+          nginx.ingress.kubernetes.io/backend-protocol: GRPC
+          nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+          nginx.ingress.kubernetes.io/grpc-backend: 'true'
+          nginx.ingress.kubernetes.io/protocol: h2c
+          nginx.ingress.kubernetes.io/proxy-read-timeout: '160'
+        enabled: true
+        hosts:
+          - {{ .Values.monitoring.thanosIngress.host }}
+        labels: {}
+        nodePort: 30901
+        paths:
+          - /
+        servicePort: 10901
+        tls: null
+        pathType: ImplementationSpecific
+{{- end }}
+    diff:
+    comparePatches:
+    - apiVersion: admissionregistration.k8s.io/v1beta1
+      kind: MutatingWebhookConfiguration
+      name: rancher-monitoring-admission
+      jsonPointers:
+      - /webhooks/0/failurePolicy
+    - apiVersion: admissionregistration.k8s.io/v1beta1
+      kind: ValidatingWebhookConfiguration
+      name: rancher-monitoring-admission
+      jsonPointers:
+      - /webhooks/0/failurePolicy
+    - apiVersion: monitoring.coreos.com/v1
+      kind: ServiceMonitor
+      name: rancher-monitoring-kubelet
+      namespace: kube-system
+      jsonPointers:
+      - /spec/endpoints
+{{- end }}

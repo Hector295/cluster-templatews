@@ -1,0 +1,15 @@
+{{ if or .Values.monitoring.enabled .Values.x509CertExporter.enabled .Values.nodeConfigOperator.enabled }}
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: {{ include "rke2-baremetal-calico.name" . }}-monitoring-crd
+  namespace: fleet-default
+spec:
+  version: "106.1.1-up69.8.2-rancher.5"
+  chart: rancher-monitoring-crd
+  releaseName: rancher-monitoring-crd
+  repoName: "whitecruiser-apps"
+  defaultNamespace: cattle-monitoring-system
+  targets:
+    - clusterName: {{ .Values.cluster.name }}
+  {{- end }}

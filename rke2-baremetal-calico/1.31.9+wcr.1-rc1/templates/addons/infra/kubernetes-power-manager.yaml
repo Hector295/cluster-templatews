@@ -1,0 +1,48 @@
+{{- $apiRefName := dict "intel" "intel" "amd" "amdepyc" | get .Values.kubernetesPowerManager.baremetalVendor }}
+{{ if .Values.kubernetesPowerManager.enabled }}
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: {{ include "rke2-baremetal-calico.name" . }}-kubernetes-power-manager-{{ $apiRefName }}-crd
+  namespace: fleet-default
+spec:
+  {{- if eq $apiRefName "intel" }}
+  version: "2.5.0"
+  chart: crds-intel
+  releaseName: crds-intel
+  defaultNamespace: intel-power
+  {{- else if eq $apiRefName "amdepyc" }}
+  version: "1.1.0"
+  chart: crds-amd
+  releaseName: crds-amd
+  defaultNamespace: power-manager
+  {{- end }}
+  repoName: "whitecruiser-apps"
+  targets:
+    - clusterName: {{ .Values.cluster.name }}
+---
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: {{ include "rke2-baremetal-calico.name" . }}-kubernetes-power-manager-{{ $apiRefName }}
+  namespace: fleet-default
+spec:
+  {{- if eq $apiRefName "intel" }}
+  version: "2.5.0"
+  chart: kubernetes-power-manager-intel
+  releaseName: kubernetes-power-manager-intel
+  defaultNamespace: intel-power
+  {{- else if eq $apiRefName "amdepyc" }}
+  version: "1.1.0"
+  chart: kubernetes-power-manager-amd
+  releaseName: kubernetes-power-manager-amd
+  defaultNamespace: power-manager
+  {{- end }}
+  repoName: "whitecruiser-apps"
+  targets:
+    - clusterName: {{ .Values.cluster.name }}
+  {{- if not (empty .Values.kubernetesPowerManager.customValues )}}
+  values:
+  {{- toYaml .Values.kubernetesPowerManager.customValues | nindent 2 }}
+  {{- end }}
+{{- end }}

@@ -1,36 +1,49 @@
 cluster:
   apiServerVIP: <changeme> # e.g. 10.101.15.245
+  # -- Name of the component
   name: "prod-cluster" # cluster name
   etcd:
     exposeMetrics: false # ExposeMetrics defines the policy for ETCD metrics exposure
+    # -- Backup configuration
     backup:
       disableAutomaticSnapshots: true
+    # -- Additional command line arguments
     extraArgs: [] # etcd configuration https://etcd.io/docs/v3.2/op-guide/configuration/
   # extraArgs:
   # - election-timeout=1000
   kubeComponents:
     kubeControllerManager:
+      # -- Additional command line arguments
       extraArgs: [] # extra args for the kube controller manager. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/
       # extraArgs:
       # - cloud-provider=external
     kubeApiServer:
+      # -- Additional command line arguments
       extraArgs: [] # extra args for the kube apiserver. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
     kubeShceduler:
+      # -- Additional command line arguments
       extraArgs: [] # extra args for the kube scheduler. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-scheduler/
     kubeProxy:
+      # -- Additional command line arguments
       extraArgs: [] # extra args for the kube proxy. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/
     kubelet:
+      # -- Additional command line arguments
       extraArgs: [] # extra args for the kubelet of all cluster nodes. https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/
+  # -- Kubernetes labels
   labels: {} # labels for all cluster nodes
+  # -- Kubernetes annotations
   annotations: {} # annotations for all cluster nodes
   addonsRepoCredentials:
     secret:
+      # -- Name of the component
       name: oci-whitecruiser-marketplace
+      # -- Kubernetes namespace
       namespace: fleet-default
 
 # ===============
 # OpenStack Global Configuration
 # ===============
+# -- infra configuration
 infraConfig:
   authUrl: https://whitecloud.intra.whitestack.com:5000/v3
   availabilityZones:
@@ -46,24 +59,31 @@ infraConfig:
     subnetName: net-products
   password:
     secret:
+      # -- Name of the component
       name: passopenstack
+      # -- Kubernetes namespace
       namespace: default
   caCerts:
     configMap:
+      # -- Name of the component
       name: ""
+      # -- Kubernetes namespace
       namespace: ""
 
 # ===============
 # Control Plane Nodes
 # ===============
+# -- controlPlane nodes configuration
 controlPlaneNodes:
   quantity: 1
   taints: #"dedicated=large-workloads:NoSchedule"
     - key: node-role.kubernetes.io/control-plane
       value: true
       effect: NoSchedule
+  # -- Kubernetes labels
   labels:
     - "node-role.kubernetes.io/control-plane=true"
+  # -- Kubernetes annotations
   annotations: {}
   flavorName: m1.large
   imageName: Ubuntu 22.04 LTS
@@ -80,12 +100,14 @@ controlPlaneNodes:
 # ===============
 # Worker Nodes
 # ===============
+# -- worker nodes configuration
 workerNodes:
   imageName: Ubuntu 22.04 LTS
   defaults:
     taints:
       - key: node-role.kubernetes.io/worker
         effect: NoSchedule
+    # -- Kubernetes labels
     labels:
       - "node-role.kubernetes.io/worker=true"
     flavorName: m1.large
@@ -103,6 +125,7 @@ workerNodes:
     - name: worker-node-sin-flavor
       quantity: 1
       hypervisorHostname: "hal2"
+      # -- Kubernetes labels
       labels:
         - "node-role.kubernetes.io/worker=true"
         - "node-role.kubernetes.io/worker-diff=true"
@@ -118,6 +141,7 @@ workerNodes:
         - netName: red_whitecruiser_ventura
           subnetName: subred_whitecruiser_ventura
 
+# -- cni configuration
 cniConfig:
   podCIDR: "10.42.0.0/16"
   serviceCIDR: "10.42.0.0/16"
@@ -129,19 +153,27 @@ cniConfig:
   # Configures general installation parameters for Cilium.
   # here: https://docs.cilium.io/en/stable/configuration/index.html
   # Values ref. for cilium: https://github.com/rancher/rke2-charts/blob/main/charts/rke2-cilium/rke2-cilium/1.17.300/values.yaml
+  # -- additional configuration
   additionalConfig: {}
 
 storage:
   longhorn:
+    # -- Enable or disable this component
     enabled: false
+    # -- Custom values override
     customValues: {}
   openebs: # https://github.com/openebs/charts/blob/main/charts/openebs/values.yaml
+    # -- Enable or disable this component
     enabled: true
+    # -- Custom values override
     customValues: {}
   cinder:
+    # -- Enable or disable this component
     enabled: false
+    # -- Custom values override
     customValues: {}
   cephFS:
+    # -- Enable or disable this component
     enabled: false
     clusterID: "aaaaaaaa-bbbb-1111-2222-33333ccccccc"
     monitorList: [ ]
@@ -155,8 +187,10 @@ storage:
     reclaimPolicy: "Retain"
     enabledHostNetwork: false
     fsName: ""
+    # -- Custom values override
     customValues: {}
   cephRBD:
+    # -- Enable or disable this component
     enabled: false
     clusterID: "aaaaaaaa-bbbb-1111-2222-33333ccccccc"
     monitorList: [ ]
@@ -169,18 +203,26 @@ storage:
     provisionerReplicaCount: 3
     reclaimPolicy: "Retain"
     enabledHostNetwork: false
+    # -- Custom values override
     customValues: {}
+# -- Logging configuration
 logging:
+  # -- Enable or disable this component
   enabled: true
   clusterOutputs:
     server:
       host: <changeme>
       port: 24224
+  # -- Custom values override
   customValues: {}
 metallb:
+  # -- Enable or disable this component
   enabled: true
+  # -- Custom values override
   customValues: {}
+# -- Monitoring configuration
 monitoring:
+  # -- Enable or disable this component
   enabled: false
   thanos:
     objectStorage:
@@ -190,38 +232,57 @@ monitoring:
       secretKey: <changeme>
   thanosIngress:
     host: <changeme>
+  # -- Custom values override
   customValues: {}
 ingressNginx:
+  # -- Enable or disable this component
   enabled: true
+  # -- Custom values override
   customValues: {}
 kubevirt:
+  # -- Enable or disable this component
   enabled: true
+  # -- Custom values override
   customValues: {}
 sriovOperator:
+  # -- Enable or disable this component
   enabled: true
+  # -- Custom values override
   customValues: {}
 nodeConfigOperator:
+  # -- Enable or disable this component
   enabled: true
+  # -- manager configuration
   managerConfig:
     aptEnabled: true
     hostfsEnabled: true
+  # -- Custom values override
   customValues:  {}
 certManager:
+  # -- Enable or disable this component
   enabled: false
+  # -- Custom values override
   customValues:  {}
 sdnController:
+  # -- Enable or disable this component
   enabled: true
   whitesdnSecrets:
     password: "kcatsetiw"
+  # -- Custom values override
   customValues: { }
 ntp:
+  # -- Enable or disable this component
   enabled: true
+  # -- Custom values override
   customValues: { }
 x509CertExporter:
+  # -- Enable or disable this component
   enabled: true
+  # -- Custom values override
   customValues: { }
 
 registries:
+  # -- Enable or disable this component
   enabled: false
 #  mirrors:
 #    "docker.io":

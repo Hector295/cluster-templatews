@@ -1,24 +1,33 @@
 kube_version: 1.30.2
 controlPlane:
+  # -- Number of replicas
   replicas: 1
+  # -- Node selector for pod assignment
   nodeSelector:
     whitestack.com/hostedcp: "true"
+  # -- Pod tolerations
   tolerations:
     - key: "whitestack.com/hostedcp"  
       operator: "Equal"
       value: "true"
       effect: NoSchedule
 calico:
+  # -- Enable or disable this component
   enabled: true
   mtu: 1430
 kubeadmWorkers:
+  # -- Enable or disable this component
   enabled: true
+  # -- Number of replicas
   replicas: 2
   imageId: 178d1438-a74c-46c5-b244-be6aa0dae8e6
 k0sWorkers:
+  # -- Enable or disable this component
   enabled: false
+  # -- Number of replicas
   replicas: 1
   imageId: 178d1438-a74c-46c5-b244-be6aa0dae8e6
+# -- cloud configuration
 cloudConfig:
   networkId: f7bd4a54-8208-4bf7-93ea-fcb1478d27b5
   subnetId: cf17fef5-9b75-40bf-ae19-0d1ecfb55c00

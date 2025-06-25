@@ -1,52 +1,87 @@
+# -- Cluster configuration settings
 cluster:
-  name: "prod-cluster" # cluster name
+  # -- Name of the Kubernetes cluster
+  name: "prod-cluster"
+  
+  # -- ETCD configuration settings
   etcd:
-    exposeMetrics: false # ExposeMetrics defines the policy for ETCD metrics exposure
+    # -- Defines the policy for ETCD metrics exposure
+    exposeMetrics: false
+    # -- ETCD backup configuration
     backup:
+      # -- Disable automatic ETCD snapshots
       disableAutomaticSnapshots: true
-    extraArgs: [] # etcd configuration https://etcd.io/docs/v3.2/op-guide/configuration/
-  # extraArgs:
-  # - election-timeout=1000
+    # -- Extra arguments for ETCD configuration (https://etcd.io/docs/v3.2/op-guide/configuration/)
+    extraArgs: []
+    # Example extraArgs:
+    # - election-timeout=1000
+  
+  # -- Kubernetes components configuration
   kubeComponents:
+    # -- Kube Controller Manager configuration
     kubeControllerManager:
-      extraArgs: [] # extra args for the kube controller manager. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/
-      # extraArgs:
+      # -- Extra arguments for the kube controller manager (https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/)
+      extraArgs: []
+      # Example extraArgs:
       # - cloud-provider=external
+    
+    # -- Kube API Server configuration
     kubeApiServer:
-      extraArgs: [] # extra args for the kube apiserver. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
+      # -- Extra arguments for the kube apiserver (https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/)
+      extraArgs: []
+    
+    # -- Kube Scheduler configuration
     kubeShceduler:
-      extraArgs: [] # extra args for the kube scheduler. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-scheduler/
+      # -- Extra arguments for the kube scheduler (https://kubernetes.io/docs/reference/command-line-tools-reference/kube-scheduler/)
+      extraArgs: []
+    
+    # -- Kube Proxy configuration
     kubeProxy:
-      extraArgs: [] # extra args for the kube proxy. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/
+      # -- Extra arguments for the kube proxy (https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/)
+      extraArgs: []
+    
+    # -- Kubelet configuration
     kubelet:
-      extraArgs: [] # extra args for the kubelet of all cluster nodes. https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/
-  labels: {} # labels for all cluster nodes
-  annotations: {} # annotations for all cluster nodes
+      # -- Extra arguments for the kubelet of all cluster nodes (https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/)
+      extraArgs: []
+  
+  # -- Labels for all cluster nodes
+  labels: {}
+  # -- Annotations for all cluster nodes
+  annotations: {}
 
-# ===============
-# Baremetal Global Configuration
-# ===============
+# -- Baremetal infrastructure configuration
 infraConfig:
+  # -- Default users configuration for all nodes
   users:
     - name: whitestack
       password: whitestack
       authorized_keys:
         - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDyQwCd7gKxObBzDV357Nl+oQwMggFg0CseB4NtGvmusH3RLUXRuQqJQ5Keu+FKlRfG0QmBT+WEmr5rLN+LDbGKM54yAUDiJV9lWroOWaSbU8ynO9ZwXhPKgfnfvG/HmGTkfGpUQkfZYOSDetbfKJ7+mFOjDTvncgdErL14JbTXLFQ6vhqxk08a8sdCAxdiX+IJ4fy7jJW3TNqmH3dpE1OfKQe+CwKaksF0wjjXu4O+xj4BWv5a0V3ePOnGD9EVze3HZWkjUGmysGNjW6IayHydIDt1JB9Q6d+pMARQrZ6R4b6ySJ21vv7FwaIZ65kHxT/UMk9fbffhLxV0Dj3s5HKbwZoZU5HhAhj74zcptjer72YygdFs1uf8h5FIrmYAXgYuDfVN76nAUls2PC/jE79xtNxLxP045VerWZVg2fXZRKgqw++Wa5sd0IYmm++SVNV4I/VGSmLmTuxe5oWMPs4FtE78EQkkNYzch3cghxJjsgZiP/KMXlrtEfhInxU3YNc= hector@hector"
         - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCSIj+UglgxRvkwojlO4ZphGAgvhhrUm/Au165pE472VI5Wt5D5AGiCzt4Gw6J7P/LN+qY/XvP+T6hOf+OERg1AYNSNVX+3YszQBQjDP76PkjsNiNqk2mI1KoLhKzHUBP1mM349mwOQS40Wv+MdoF6YEYzgNVECxPExCo2pjRd6J65exiK5IfJamZVlyxwkDqiWjvhUdRKBc2PqyU7BEYltAmzzVsXiU+dgC4E5dce+OKmtoc0r137CI220TdkQMgeGHojgVQ7bfgovRajLoAcf3ntB2V7gU9gIY2rRKxqbHKyXWWIb/Rb2+w134avbxaFv8CTgTlE8N0h/vHL01Ta0dglQ16EyiC065NN+XctRPUXlaoiOBEN3OeArIjRsmLztleWtLG4/yzslG9V8TlTa0+pMArUeQICRl2OvqGUGmnE6ZIbhxJWhrWGRMbPTklKk2WwiXlc9pcN8mrwfdxYUzUYvn+SOHAXBqTL0N8MDVwcEyNLovpYW8skWWcPXQUH8HkmHlIzwiZd+qXSKOJAcuwcfGwk7MUWOP7NNpD3ltrnNClVIzL8BmaaCuABnNs+Y6rYhlNrscOIcrOH7a3Nbcz2/l2vPI9kvDM0BV8mDxwpOS/FS0BhqA8ry7hfbdLk02lVbXDbQJrAboSZzcR6iXLGAvoYmtNYVttc9t49ahw== luis@tt"
-  image: # propiedades de la imagen base para los nodos
+  
+  # -- Base image configuration for nodes
+  image:
+    # -- URL of the base OS image for nodes
     url: http://10.100.100.2/ubuntu-22.iso
-    name: ubuntu22 # ubuntu20
+    # -- Name of the OS image (ubuntu22 or ubuntu20)
+    name: ubuntu22
+  
+  # -- Kernel configuration for nodes
   kernel:
-    version: 6.5-generic # version de kernel para los nodos
+    # -- Kernel version for the nodes
+    version: 6.5-generic
 
 # ===============
 # Control Plane Nodes
 # ===============
+# -- controlPlane nodes configuration
 controlPlaneNodes:
   defaults: # configuración por defecto para los nodos control-plane
     taints:
       - key: node-role.kubernetes.io/control-plane
         effect: NoSchedule
+    # -- Kubernetes labels
     labels:
       node-role.kubernetes.io/control-plane: ""
     storage:
@@ -58,25 +93,31 @@ controlPlaneNodes:
         boot: uefi
         lvs:
           - name: lv-root
+            # -- Storage size
             size: 80GB
             fs_type: ext4
             mount: /
           - name: lv-logs
+            # -- Storage size
             size: 20GB
             fs_type: ext4
             mount: /var/log
           - name: lv-tmp
+            # -- Storage size
             size: 2GB
             fs_type: ext4
             mount: /var/tmp
           - name: lv-audit
+            # -- Storage size
             size: 5GB
             fs_type: ext4
             mount: /var/log/audit
     bmc:
       provider: ilo
       credentialsSecret:
+        # -- Name of the component
         name: "baremetal-cluster"
+        # -- Kubernetes namespace
         namespace: "default"
   nodes: # lista de nodos control-plane
     - hostname: node-01
@@ -84,7 +125,9 @@ controlPlaneNodes:
         provider: ilo
         address: 10.40.12.10
         credentialsSecret:
+          # -- Name of the component
           name: "baremetal-cluster-1"
+          # -- Kubernetes namespace
           namespace: "default"
       network:
         primaryInterface:
@@ -102,11 +145,13 @@ controlPlaneNodes:
 # ===============
 # Worker Nodes
 # ===============
+# -- worker nodes configuration
 workerNodes:
   defaults:
     taints:
       - key: node-role.kubernetes.io/worker
         effect: NoSchedule
+    # -- Kubernetes labels
     labels:
       node-role.kubernetes.io/worker: ""
     storage:
@@ -118,28 +163,35 @@ workerNodes:
         boot: uefi
         lvs:
           - name: lv-root
+            # -- Storage size
             size: 80GB
             fs_type: ext4
             mount: /
           - name: lv-logs
+            # -- Storage size
             size: 20GB
             fs_type: ext4
             mount: /var/log
           - name: lv-tmp
+            # -- Storage size
             size: 2GB
             fs_type: ext4
             mount: /var/tmp
           - name: lv-audit
+            # -- Storage size
             size: 5GB
             fs_type: ext4
             mount: /var/log/audit
     bmc:
       provider: ilo
       credentialsSecret:
+        # -- Name of the component
         name: "baremetal-worker-cluster"
+        # -- Kubernetes namespace
         namespace: "default"
   nodes:
     - hostname: worker-node-01
+      reservedSystemCPU: []
       bmc:
         address: 10.100.19.132
       network:
@@ -155,6 +207,7 @@ workerNodes:
                   - to: default
                     via: 10.100.2.1
 
+# -- cni configuration
 cniConfig:
   podCIDR: "10.42.0.0/16"
   serviceCIDR: "10.42.0.0/16"
@@ -167,16 +220,22 @@ cniConfig:
   # on the operator.tigera.io/Installation API documented
   # here: https://docs.tigera.io/calico/latest/reference/installation/api#operator.tigera.io/v1.InstallationSpec
   # Values ref. for calico https://github.com/rancher/rke2-charts/blob/main/charts/rke2-calico/rke2-calico/v3.30.100/values.yaml
+  # -- additional configuration
   additionalConfig: {}
 
 storage:
   longhorn:
+    # -- Enable or disable this component
     enabled: true
+    # -- Custom values override
     customValues: {}
   openebs: # https://github.com/openebs/charts/blob/main/charts/openebs/values.yaml
+    # -- Enable or disable this component
     enabled: false
+    # -- Custom values override
     customValues: {}
   cephFS:
+    # -- Enable or disable this component
     enabled: false
     clusterID: "aaaaaaaa-bbbb-1111-2222-33333ccccccc"
     monitorList: [ ]
@@ -190,8 +249,10 @@ storage:
     reclaimPolicy: "Retain"
     enabledHostNetwork: false
     fsName: ""
+    # -- Custom values override
     customValues: {}
   cephRBD:
+    # -- Enable or disable this component
     enabled: false
     clusterID: "aaaaaaaa-bbbb-1111-2222-33333ccccccc"
     monitorList: [ ]
@@ -204,18 +265,26 @@ storage:
     provisionerReplicaCount: 3
     reclaimPolicy: "Retain"
     enabledHostNetwork: false
+    # -- Custom values override
     customValues: {}
+# -- Logging configuration
 logging:
+  # -- Enable or disable this component
   enabled: true
   clusterOutputs:
     server:
       host: <changeme>
       port: 24224
+  # -- Custom values override
   customValues: {}
 metallb:
+  # -- Enable or disable this component
   enabled: true
+  # -- Custom values override
   customValues: {}
+# -- Monitoring configuration
 monitoring:
+  # -- Enable or disable this component
   enabled: false
   thanos:
     objectStorage:
@@ -225,38 +294,64 @@ monitoring:
       secretKey: <changeme>
   thanosIngress:
     host: <changeme>
+  # -- Custom values override
   customValues: {}
 ingressNginx:
+  # -- Enable or disable this component
   enabled: true
+  # -- Custom values override
   customValues: {}
 kubevirt:
+  # -- Enable or disable this component
   enabled: true
+  # -- Custom values override
   customValues: {}
 sriovOperator:
+  # -- Enable or disable this component
   enabled: true
+  # -- Custom values override
   customValues: {}
 nodeConfigOperator:
+  # -- Enable or disable this component
   enabled: true
+  # -- manager configuration
   managerConfig:
     aptEnabled: true
     hostfsEnabled: true
+  # -- Custom values override
   customValues:  {}
 certManager:
+  # -- Enable or disable this component
   enabled: false
+  # -- Custom values override
   customValues:  {}
 sdnController:
+  # -- Enable or disable this component
   enabled: true
   whitesdnSecrets:
     password: "kcatsetiw"
+  # -- Custom values override
   customValues: { }
 ntp:
+  # -- Enable or disable this component
   enabled: true
+  # -- Custom values override
   customValues: { }
 x509CertExporter:
+  # -- Enable or disable this component
   enabled: true
+  # -- Custom values override
   customValues: { }
 
+kubernetesPowerManager:
+  # -- Enable or disable this component
+  enabled: false
+  baremetalVendor: "intel" # or amd
+  # -- Custom values override
+  customValues: {}
+
 registries:
+  # -- Enable or disable this component
   enabled: false
 #registries:
 #  enabled: true

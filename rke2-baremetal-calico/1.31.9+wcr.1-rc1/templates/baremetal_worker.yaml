@@ -7,6 +7,7 @@ metadata:
     skip-diff-checker: "true"
 spec:
   clusterKind: WhiteCruiser
+  # TODO separate labels and taints from rancherAgentParameters
   rancherAgentParameters: "--label openebs.io/engine=mayastor"
   serverSelector: whitecruiser-{{ $.Values.cluster.name }}
   hostname: {{ .hostname }}

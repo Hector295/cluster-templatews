@@ -1,0 +1,370 @@
+{{ template "chart.header" . }}
+{{ template "chart.deprecationWarning" . }}
+
+{{ template "chart.badgesSection" . }}
+
+{{ template "chart.description" . }}
+
+## Overview
+
+This Helm chart deploys an RKE2 Kubernetes cluster on OpenStack infrastructure using Cluster API (CAPI) with Cilium CNI. Key features include:
+
+- **Advanced Networking**: Cilium CNI with eBPF dataplane and advanced security features
+- **CAPI Integration**: Full Cluster API support for OpenStack deployments  
+
+
+## Installation
+
+```bash
+# Download and install the cluster template
+helm install {{ template "chart.name" . }}-{{ template "chart.version" . }}.tgz -f custom-values.yaml .
+
+# Or via WhiteCruiser UI using the cluster template
+```
+
+## Configuration Examples
+
+### Basic Cluster with Cilium
+
+```yaml
+cluster:
+  name: "cilium-cluster"
+  apiServerVIP: "10.1.1.100"
+
+cniConfig:
+  podCIDR: "10.42.0.0/16"
+  serviceCIDR: "10.43.0.0/16"
+  # Cilium-specific configuration
+  additionalConfig:
+    cilium:
+      hubble:
+        enabled: true
+        relay:
+          enabled: true
+        ui:
+          enabled: true
+      operator:
+        replicas: 2
+```
+
+### Advanced Cilium Features
+
+```yaml
+# Network policies and security
+cniConfig:
+  additionalConfig:
+    cilium:
+      policyEnforcementMode: "always"
+      encryption:
+        enabled: true
+        type: "wireguard"
+      
+      # Service mesh features
+      serviceMesh:
+        enabled: true
+      
+      # Observability
+      hubble:
+        enabled: true
+        metrics:
+          enabled:
+            - dns
+            - drop
+            - tcp
+            - flow
+            - icmp
+            - http
+```
+
+### Load Balancing Configuration
+
+```yaml
+metallb:
+  enabled: true
+```
+
+{{ template "chart.homepageLine" . }}
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+## Add-ons Inventory
+
+This chart includes the following add-ons with their default versions:
+
+### Storage Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| longhorn | 106.2.0-up1.8.1 | ✅ | Longhorn storage |
+| longhorn-crd | 106.2.0-up1.8.1 | ✅ | Longhorn custom resource definitions |
+| ceph-csi-cephfs | 3.10.2 | ❌ | Ceph filesystem CSI driver |
+| ceph-csi-rbd | 3.10.1 | ❌ | Ceph block device CSI driver |
+| openebs | 3.10.0 | ❌ | OpenEBS storage |
+| openstack-cinder-csi | 2.1.1 | ❌ | OpenStack Cinder CSI driver |
+
+### Infrastructure Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| cert-manager | v1.17.1 | ❌ | X.509 certificate management |
+| metallb | 0.14.5 | ❌ | Load balancer implementation |
+| node-config-operator | 0.2.0 | ❌ | Node config operator |
+| ntpd-rs | 1.1.2 | ❌ | Network time protocol daemon |
+| sriov-network-operator | 1.5.2-up1.5.0 | ❌ | SR-IOV network device plugin |
+| whitesdn-controller | 0.3.0 | ❌ | SDN controller for network management |
+| x509-certificate-exporter | 3.18.1 | ❌ | X.509 certificate monitoring |
+
+### Networking Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| rke2-ingress-nginx | 4.12.103 | ❌ | NGINX ingress controller |
+
+### Cloud Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| openstack-cloud-controller-manager | 2.32.0 | ❌ | OpenStack cloud controller |
+
+### Monitoring Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| rancher-monitoring | 106.1.1-up69.8.2-rancher.5 | ❌ | Prometheus monitoring stack |
+| rancher-logging | 106.0.1-up4.10.0-rancher.4 | ❌ | Fluentd logging stack |
+
+### Virtualization Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| kubevirt | 0.5.0 | ❌ | Virtual machine management |
+| cdi | 0.5.0 | ❌ | kubevirt crd |
+| kubevirt-dashboard-extension | TBD | ❌ | Rancher UI extension for KubeVirt |
+
+### Default Add-on Configuration
+
+> ⚠️ **Warning**: When using `customValues`, they will completely override the default values shown below. Make sure to include any default settings you want to preserve.
+
+```yaml
+# Storage Add-ons
+storage:
+  longhorn:
+    enabled: false  # Note: openebs is enabled by default in this template
+    # Default values (applied when customValues is empty):
+    # persistence:
+    #   defaultClass: false
+    # defaultSettings:
+    #   replicaSoftAntiAffinity: false
+    #   autoDeletePodWhenVolumeDetachedUnexpectedly: true
+    #   allowVolumeCreationWithDegradedAvailability: false
+    #   replicaAutoBalance: least-effort
+    #   storageMinimalAvailablePercentage: 25
+    #   storageOverProvisioningPercentage: 200
+    #   defaultDataPath: /var/lib/longhorn/
+    #   nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+    customValues: {}
+
+  openebs:
+    enabled: true  # Enabled by default in this template
+
+  cinder:
+    enabled: false  # OpenStack Cinder CSI
+    # Default values (applied when customValues is empty):
+    # secret:
+    #   enabled: true
+    #   name: cloud-config
+  cephRBD:
+    enabled: false
+    clusterID: "aaaaaaaa-bbbb-1111-2222-33333ccccccc"
+    monitorList: []
+    pool: "volumes"
+    userID: "admin"
+    userKey: "AAAAAAAAAAAAAAAAAA/BBBBBBBBBBBBBBBBBBB=="
+    provisionerReplicaCount: 3
+    reclaimPolicy: "Retain"
+    enabledHostNetwork: false
+
+  cephFS:
+    enabled: false
+    clusterID: "aaaaaaaa-bbbb-1111-2222-33333ccccccc"
+    monitorList: []
+    pool: "volumes"
+    userID: "admin"
+    userKey: "AAAAAAAAAAAAAAAAAA/BBBBBBBBBBBBBBBBBBB=="
+    provisionerReplicaCount: 3
+    reclaimPolicy: "Retain"
+    enabledHostNetwork: false
+    fsName: ""
+
+# Infrastructure Add-ons (most enabled by default in this template)
+certManager:
+  enabled: false
+
+metallb:
+  enabled: true  # Enabled by default in this template
+
+nodeConfigOperator:
+  enabled: true  # Enabled by default in this template
+  managerConfig:
+    aptEnabled: true
+    hostfsEnabled: true
+
+ntp:
+  enabled: true  # Enabled by default in this template (ntpd-rs)
+
+
+sriovOperator:
+  enabled: true  # Enabled by default in this template
+
+
+sdnController:
+  enabled: true  # Enabled by default in this template (whitesdn-controller)
+  whitesdnSecrets:
+    password: "kcatsetiw"
+
+
+x509CertExporter:
+  enabled: true  # Enabled by default in this template
+
+
+# Networking Add-ons
+ingressNginx:
+  enabled: true  # Enabled by default in this template
+
+# Cloud integration
+openStackCCM:
+  enabled: false
+
+
+# Monitoring Add-ons (logging enabled by default)
+monitoring:
+  enabled: false
+  thanos:
+    objectStorage:
+      accessKey: "<changeme>"
+      bucket: "<changeme>"
+      endpoint: "<changeme:changeme>"
+      secretKey: "<changeme>"
+  thanosIngress:
+    host: "<changeme>"
+  # Default values (applied when customValues is empty):
+  # alertmanager:
+  #   enabled: false
+  # prometheus:
+  #   thanosService:
+  #     enabled: true
+  #   prometheusSpec:
+  #     tolerations:
+  #       - key: "node-role.kubernetes.io/control-plane"
+  #         operator: "Exists"
+  #         effect: "NoSchedule"
+  #     externalLabels:
+  #       k8s_cluster: `\{\{ cluster.name \}\}`
+  #     thanos:
+  #       objstoreConfig:
+  #         config:
+  #           access_key: `\{\{ thanos.objectStorage.accessKey \}\}`
+  #           bucket: `\{\{ thanos.objectStorage.bucket \}\}`
+  #           endpoint: `\{\{ thanos.objectStorage.endpoint \}\}`
+  #           insecure: true
+  #           secret_key: `\{\{ thanos.objectStorage.secretKey \}\}`
+  #         type: S3
+  #   thanosIngress:
+  #     annotations:
+  #       nginx.ingress.kubernetes.io/backend-protocol: GRPC
+  #       nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+  #       nginx.ingress.kubernetes.io/grpc-backend: 'true'
+  #       nginx.ingress.kubernetes.io/protocol: h2c
+  #       nginx.ingress.kubernetes.io/proxy-read-timeout: '160'
+  #     enabled: true
+  #     hosts:
+  #       - `\{\{ thanosIngress.host \}\}`
+  #     labels: {}
+  #     nodePort: 30901
+  #     paths:
+  #       - /
+  #     servicePort: 10901
+  #     tls: null
+  #     pathType: ImplementationSpecific
+  customValues: {}
+
+logging:
+  enabled: true  # Enabled by default in this template
+  clusterOutputs:
+    server:
+      host: "<changeme>"
+      port: 24224
+  # Default values (applied when customValues is empty):
+  # rke2:
+  #   enabled: true
+  # logging:
+  #   enableRecreateWorkloadOnImmutableFieldChange: true
+  #   enabled: true
+  #   clusterFlows:
+  #     - name: all-logs
+  #       spec:
+  #         filters:
+  #           - record_modifier:
+  #               records:
+  #                 - cluster-name: `\{\{ cluster.name \}\}`
+  #         globalOutputRefs:
+  #           - fluentd-forward
+  #         match:
+  #           - select: {}
+  #   fluentd:
+  #     bufferStorageVolume:
+  #       pvc:
+  #         spec:
+  #          accessModes:
+  #            - ReadWriteOnce
+  #          resources:
+  #            requests:
+  #              storage: 5Gi
+  #   clusterOutputs:
+  #     - name: fluentd-forward
+  #       spec:
+  #         forward:
+  #           buffer:
+  #             flush_interval: 10s
+  #             retry_forever: false
+  #             retry_max_interval: '30'
+  #             type: file
+  #           compress: gzip
+  #           require_ack_response: false
+  #           servers:
+  #             - host: `\{\{ logging.clusterOutputs.server.host \}\}`
+  #               port: `\{\{ logging.clusterOutputs.server.port \}\}`
+  #           tls_insecure_mode: true
+  # hostTailer:
+  #   enabled: true
+  #   fileTailers:
+  #     - name: syslog
+  #       path: /var/log/syslog
+  customValues: {}
+
+# Virtualization Add-ons (enabled by default in this template)
+kubevirt:
+  enabled: true  # Enabled by default in this template
+  # Default values (applied when customValues is empty):
+  # kubevirt:
+  #   configuration:
+  #     developerConfiguration:
+  #       useEmulation: true
+  customValues: {}
+
+# CNI Configuration (Cilium-specific)
+cniConfig:
+  podCIDR: "10.42.0.0/16"
+  serviceCIDR: "10.42.0.0/16"  # Note: same as podCIDR in template
+  mtu: 1440
+  tunnelProtocol: "VXLAN"
+  masquerade: true
+  bgp: false
+  multusEnabled: false
+  # Default values (applied when customValues is empty): None (uses Cilium chart defaults)
+  # See https://github.com/rancher/rke2-charts/blob/main/charts/rke2-cilium/rke2-cilium/1.17.300/values.yaml
+  additionalConfig: {}
+```
+
+{{ template "chart.valuesSection" . }}
+
+
+{{ template "helm-docs.versionFooter" . }}

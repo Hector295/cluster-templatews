@@ -1,51 +1,84 @@
+# -- RKE2 cluster core configuration
 cluster:
+  # -- Virtual IP address for the Kubernetes API server (load balancer endpoint)
   apiServerVIP: <changeme> # e.g. 10.101.15.245
-  # -- Name of the component
-  name: "prod-cluster" # cluster name
+  # -- Cluster identifier used for naming resources and certificate generation
+  name: "prod-cluster"
+  
+  # -- ETCD distributed key-value store configuration
   etcd:
-    exposeMetrics: false # ExposeMetrics defines the policy for ETCD metrics exposure
-    # -- Backup configuration
+    # -- Enable Prometheus metrics endpoint for ETCD monitoring (port 2381)
+    exposeMetrics: false
+    # -- ETCD backup and snapshot configuration
     backup:
+      # -- Disable automatic periodic snapshots (manual snapshots still available)
       disableAutomaticSnapshots: true
-    # -- Additional command line arguments
-    extraArgs: [] # etcd configuration https://etcd.io/docs/v3.2/op-guide/configuration/
-  # extraArgs:
-  # - election-timeout=1000
+    # -- Additional command-line arguments for ETCD server startup
+    extraArgs: []
+    # Example extraArgs for ETCD tuning:
+    # - election-timeout=1000      # Election timeout in milliseconds
+    # - heartbeat-interval=100     # Heartbeat interval in milliseconds
+  
+  # -- Kubernetes control plane components configuration
   kubeComponents:
+    # -- Controller Manager handles cluster-level functions like replication
     kubeControllerManager:
-      # -- Additional command line arguments
-      extraArgs: [] # extra args for the kube controller manager. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/
-      # extraArgs:
-      # - cloud-provider=external
+      # -- Additional arguments for controller manager (security, cloud provider, etc.)
+      extraArgs: []
+      # Common extraArgs examples:
+      # - cloud-provider=external            # Use external cloud provider
+      # - terminated-pod-gc-threshold=10     # Garbage collect terminated pods
+    
+    # -- API Server provides the Kubernetes API and validates objects
     kubeApiServer:
-      # -- Additional command line arguments
-      extraArgs: [] # extra args for the kube apiserver. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
+      # -- Additional arguments for API server (authentication, authorization, etc.)
+      extraArgs: []
+      # Common extraArgs examples:
+      # - audit-log-path=/var/log/audit.log  # Enable audit logging
+      # - enable-admission-plugins=PodSecurity # Enable pod security standards
+    
+    # -- Scheduler assigns pods to nodes based on resource requirements
     kubeShceduler:
-      # -- Additional command line arguments
-      extraArgs: [] # extra args for the kube scheduler. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-scheduler/
+      # -- Additional arguments for scheduler (policies, profiles, etc.)
+      extraArgs: []
+      # Common extraArgs examples:
+      # - v=2                                # Increase verbosity level
+      # - kube-api-qps=50                    # API server QPS limit
+    
+    # -- Proxy handles network rules and load balancing on each node
     kubeProxy:
-      # -- Additional command line arguments
-      extraArgs: [] # extra args for the kube proxy. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/
+      # -- Additional arguments for kube-proxy (networking mode, IP tables, etc.)
+      extraArgs: []
+      # Common extraArgs examples:
+      # - proxy-mode=ipvs                    # Use IPVS for better performance
+      # - cluster-cidr=10.42.0.0/16         # Pod network CIDR
+    
+    # -- Kubelet manages pods and containers on each node
     kubelet:
-      # -- Additional command line arguments
-      extraArgs: [] # extra args for the kubelet of all cluster nodes. https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/
-  # -- Kubernetes labels
-  labels: {} # labels for all cluster nodes
-  # -- Kubernetes annotations
-  annotations: {} # annotations for all cluster nodes
+      # -- Additional arguments for kubelet (container runtime, logging, security)
+      extraArgs: []
+      # Common extraArgs examples:
+      # - max-pods=110                       # Maximum pods per node
+      # - container-log-max-size=10Mi        # Log rotation settings
+  
+  # -- Kubernetes labels applied to all cluster nodes for scheduling and selection
+  labels: {}
+  # -- Kubernetes annotations applied to all cluster nodes for metadata
+  annotations: {}
+  
+  # -- Repository credentials for accessing private Helm charts and add-ons
   addonsRepoCredentials:
     secret:
-      # -- Name of the component
+      # -- Name of the secret containing repository credentials
       name: oci-whitecruiser-marketplace
-      # -- Kubernetes namespace
+      # -- Namespace where the credentials secret is stored
       namespace: fleet-default
 
-# ===============
-# OpenStack Global Configuration
-# ===============
-# -- infra configuration
+# -- OpenStack cloud infrastructure and authentication configuration
 infraConfig:
+  # -- OpenStack Keystone authentication URL (identity service endpoint)
   authUrl: https://whitecloud.intra.whitestack.com:5000/v3
+  # -- List of OpenStack availability zones for node distribution and high availability
   availabilityZones:
     - HAL1
   domainName: Default
@@ -150,9 +183,8 @@ cniConfig:
   masquerade: true
   bgp: false
   multusEnabled: false
-  # Configures general installation parameters for Calico. Schema is based
-  # on the operator.tigera.io/Installation API documented
-  # here: https://docs.tigera.io/calico/latest/reference/installation/api#operator.tigera.io/v1.InstallationSpec
+  # Configures general installation parameters for Cilium.
+  # here: https://docs.cilium.io/en/stable/configuration/index.html
   # Values ref. for cilium: https://github.com/rancher/rke2-charts/blob/main/charts/rke2-cilium/rke2-cilium/1.17.300/values.yaml
   # -- additional configuration
   additionalConfig: {}

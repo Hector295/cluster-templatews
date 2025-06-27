@@ -1,0 +1,322 @@
+{{ template "chart.header" . }}
+{{ template "chart.deprecationWarning" . }}
+
+{{ template "chart.badgesSection" . }}
+
+{{ template "chart.description" . }}
+
+## Overview
+
+This Helm chart deploys an RKE2 Kubernetes cluster on baremetal infrastructure with Calico CNI. It provides comprehensive configuration for:
+
+- **Control Plane Nodes**: Highly available Kubernetes control plane
+- **Worker Nodes**: Configurable worker nodes for workload scheduling  
+- **Storage Options**: Longhorn, Ceph, OpenEBS storage providers
+- **Add-ons**: Monitoring, logging, virtualization, and infrastructure add-ons
+- **Network Configuration**: Calico CNI with optional Multus support
+
+## Installation
+
+```bash
+# Download and install the cluster template
+helm install {{ template "chart.name" . }}-{{ template "chart.version" . }}.tgz -f custom-values.yaml .
+
+# Or via WhiteCruiser UI using the cluster template
+```
+
+## Configuration Examples
+
+### Basic Cluster Configuration
+
+```yaml
+cluster:
+  name: "production-cluster"
+  etcd:
+    exposeMetrics: true
+    backup:
+      disableAutomaticSnapshots: false
+
+controlPlaneNodes:
+  nodes:
+    - hostname: cp-node-01
+      bmc:
+        address: 10.1.1.10
+      network:
+        primaryInterface:
+          address: 10.1.2.10
+
+workerNodes:
+  nodes:
+    - hostname: worker-01  
+      bmc:
+        address: 10.1.1.20
+      network:
+        primaryInterface:
+          address: 10.1.2.20
+```
+
+### Storage Configuration
+
+```yaml
+storage:
+  longhorn:
+    enabled: true
+    customValues:
+      defaultSettings:
+        replicaSoftAntiAffinity: true
+        
+  cephRBD:
+    enabled: false
+    clusterID: "your-ceph-cluster-id"
+    monitorList:
+      - "10.1.1.100:6789"
+```
+
+### Add-ons Configuration
+
+```yaml
+# Enable monitoring stack
+monitoring:
+  enabled: true
+  customValues:
+    prometheus:
+      prometheusSpec:
+        retention: "30d"
+
+# Enable virtualization
+kubevirt:
+  enabled: true
+  customValues:
+    configuration:
+      developerConfiguration:
+        useEmulation: false
+```
+
+{{ template "chart.homepageLine" . }}
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+## Add-ons Inventory
+
+This chart includes the following add-ons with their default versions:
+
+### Storage Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| longhorn | 106.2.0-up1.8.1 | ✅ | Longhorn storage |
+| longhorn-crd | 106.2.0-up1.8.1 | ✅ | Longhorn custom resource definitions |
+| ceph-csi-cephfs | 3.10.2 | ❌ | Ceph filesystem CSI driver |
+| ceph-csi-rbd | 3.10.1 | ❌ | Ceph block device CSI driver |
+| openebs | 3.10.0 | ❌ | OpenEBS storage |
+
+### Infrastructure Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| cert-manager | v1.17.1 | ❌ | X.509 certificate management |
+| metallb | 0.14.5 | ❌ | Load balancer implementation |
+| node-config-operator | 0.2.0 | ❌ | Node config operator |
+| ntpd-rs | 1.1.2 | ❌ | Network time protocol daemon |
+| sriov-network-operator | 1.5.2-up1.5.0 | ❌ | SR-IOV network device plugin |
+| whitesdn-controller | 0.3.0 | ❌ | SDN controller for network management |
+| x509-certificate-exporter | 3.18.1 | ❌ | X.509 certificate monitoring |
+| kubernetes-power-manager-intel | 2.5.0 | ❌ | Intel CPU power management |
+| kubernetes-power-manager-amd | 1.1.0 | ❌ | AMD CPU power management |
+
+### Monitoring Add-ons  
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| rancher-monitoring | 106.1.1-up69.8.2-rancher.5 | ❌ | Prometheus monitoring stack |
+| rancher-logging | 106.0.1-up4.10.0-rancher.4 | ❌ | Fluentd logging stack |
+
+### Virtualization Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| kubevirt | 0.5.0 | ❌ | Virtual machine management |
+| cdi | 0.5.0 | ❌ | kubevirt crd |
+| kubevirt-dashboard-extension | 1.3.1 | ❌ | Rancher UI extension for KubeVirt |
+
+### Default Add-on Configuration
+
+> ⚠️ **Warning**: When using `customValues`, they will completely override the default values shown below. Make sure to include any default settings you want to preserve.
+
+```yaml
+# Storage Add-ons
+storage:
+  longhorn:
+    enabled: true  # Default: enabled
+    # Default values (applied when customValues is empty):
+    # persistence:
+    #   defaultClass: false
+    # defaultSettings:
+    #   replicaSoftAntiAffinity: false
+    #   autoDeletePodWhenVolumeDetachedUnexpectedly: true
+    #   allowVolumeCreationWithDegradedAvailability: false
+    #   replicaAutoBalance: least-effort
+    #   storageMinimalAvailablePercentage: 25
+    #   storageOverProvisioningPercentage: 200
+    #   defaultDataPath: /var/lib/longhorn/
+    #   nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+    customValues: {}
+    
+  cephFS:
+    enabled: false
+    clusterID: "aaaaaaaa-bbbb-1111-2222-33333ccccccc"
+    monitorList: []
+    pool: "volumes"
+    userID: "admin"
+    userKey: "AAAAAAAAAAAAAAAAAA/BBBBBBBBBBBBBBBBBBB=="
+    provisionerReplicaCount: 3
+    reclaimPolicy: "Retain"
+    enabledHostNetwork: false
+    fsName: ""
+    customValues: {}
+
+  cephRBD:
+    enabled: false
+    clusterID: "aaaaaaaa-bbbb-1111-2222-33333ccccccc"
+    monitorList: []
+    pool: "volumes"
+    userID: "admin"
+    userKey: "AAAAAAAAAAAAAAAAAA/BBBBBBBBBBBBBBBBBBB=="
+    provisionerReplicaCount: 3
+    reclaimPolicy: "Retain"
+    enabledHostNetwork: false
+    # Default values (applied when customValues is empty):
+    # csiConfig:
+    # - clusterID: `\{\{ clusterID \}\}`
+    #   monitors: `\{\{ monitorList \}\}`
+    #   readAffinity:
+    #     enabled: true
+    #     crushLocationLabels:
+    #       - topology.kubernetes.io/region
+    #       - topology.kubernetes.io/zone
+    # storageClass:
+    #   create: true
+    #   name: default-ceph-rbd-sg
+    #   clusterID: `\{\{ clusterID \}\}`
+    #   pool: `\{\{ pool \}\}`
+    #   reclaimPolicy: `\{\{ reclaimPolicy \}\}`
+    #   encrypted: false
+    # secret:
+    #   create: true
+    #   userID: `\{\{ userID \}\}`
+    #   userKey: `\{\{ userKey \}\}`
+    # readAffinity:
+    #   enabled: true
+    # provisioner:
+    #   replicaCount: `\{\{ provisionerReplicaCount \}\}`
+    #   enableHostNetwork: `\{\{ enabledHostNetwork \}\}`
+    # logLevel: 5
+    # sidecarLogLevel: 1
+    customValues: {}
+
+  openebs:
+    enabled: false
+    # Default values (applied when customValues is empty):
+    # apiserver:
+    #   enabled: false
+    # localprovisioner:
+    #   replicas: 2
+    # ndm:
+    #   enabled: false
+    # ndmOperator:
+    #   enabled: false
+    # analytics:
+    #   enabled: false
+    # webhook:
+    #   enabled: false
+    # snapshotOperator:
+    #   enabled: false
+    # policies:
+    #   monitoring:
+    #     enabled: false
+    # provisioner:
+    #   enabled: false
+    customValues: {}
+
+# Infrastructure Add-ons (all disabled by default)
+
+certManager: This addon has no default values
+metallb: This addon has no default values
+nodeConfigOperator: This addon has no default values
+ntpd: This addon has no default values
+sriovOperator: This addon has no default values
+sdnController: This addon has no default values
+x509CertExporter: This addon has no default values
+kubernetsPowerManager: This addon has no default values
+
+# Monitoring Add-ons (disabled by default)
+monitoring:
+  enabled: false
+  # Default values (applied when customValues is empty):
+  # alertmanager:
+  #   enabled: false
+  # prometheus:
+  #   thanosService:
+  #     enabled: true
+  #   prometheusSpec:
+  #     tolerations:
+  #       - key: "node-role.kubernetes.io/control-plane"
+  #         operator: "Exists"
+  #         effect: "NoSchedule"
+  #     externalLabels:
+  #       k8s_cluster: cluster.name
+  thanos:
+    objectStorage:
+      accessKey: ""
+      bucket: ""
+      endpoint: ""
+      secretKey: ""
+  thanosIngress:
+    host: ""
+  customValues: {}
+
+logging:
+  enabled: false
+  # Default values (applied when customValues is empty):
+  # rke2:
+  #   enabled: true
+  # logging:
+  #   enableRecreateWorkloadOnImmutableFieldChange: true
+  #   enabled: true
+  #   clusterFlows:
+  #     - name: all-logs
+  #       spec:
+  #         filters:
+  #           - record_modifier:
+  #               records:
+  #                 - cluster-name: `\{\{ cluster.name \}\}`
+  #         globalOutputRefs:
+  #           - fluentd-forward
+  #         match:
+  #           - select: {}
+  customValues: {}
+
+# Virtualization Add-ons (disabled by default) 
+kubevirt:
+  enabled: false
+  # Default values (applied when customValues is empty):
+  # configuration:
+  #   developerConfiguration:
+  #     useEmulation: true
+  customValues: {}
+```
+
+{{ template "chart.valuesSection" . }}
+
+## Troubleshooting
+
+1. **BMC Connection Failures**
+   - Verify BMC credentials and network connectivity
+   - Check firewall rules for BMC ports
+
+2. **Node Bootstrap Issues**  
+   - Ensure base OS image is accessible
+   - Verify network configuration in netplan
+
+
+{{ template "helm-docs.versionFooter" . }}

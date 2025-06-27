@@ -1,0 +1,264 @@
+{{ template "chart.header" . }}
+{{ template "chart.deprecationWarning" . }}
+
+{{ template "chart.badgesSection" . }}
+
+{{ template "chart.description" . }}
+
+## Overview
+
+This Helm chart deploys an RKE2 Kubernetes cluster on OpenStack infrastructure using Cluster API (CAPI) with Calico CNI. It provides:
+
+- **CAPI Integration**: Full Cluster API support for OpenStack deployments
+- **Auto-scaling**: Machine deployments with configurable scaling
+- **Cloud Integration**: OpenStack Cloud Controller Manager and CSI drivers
+- **Storage Options**: Longhorn, Ceph, OpenEBS, and OpenStack Cinder
+- **Add-ons**: Comprehensive monitoring, logging, and infrastructure add-ons
+- **Network Configuration**: Calico CNI with Multus support
+
+## Prerequisites
+
+- Kubernetes cluster with Cluster API controllers installed
+- OpenStack cloud credentials and network configuration
+- Cluster API OpenStack provider (CAPO) deployed
+- Container registry access for RKE2 images
+
+## Installation
+
+```bash
+# Download and install the cluster template
+helm install {{ template "chart.name" . }}-{{ template "chart.version" . }}.tgz -f custom-values.yaml .
+
+# Or via WhiteCruiser UI using the cluster template
+```
+
+## Configuration Examples
+
+### Basic Cluster Configuration
+
+```yaml
+cluster:
+  name: "production-cluster"
+  apiServerVIP: "10.1.1.100"
+
+infraConfig:
+  authUrl: "https://openstack.example.com:5000/v3"
+  availabilityZones:
+    - "zone1"
+  domainName: "Default"
+  region: "RegionOne"
+  tenantName: "my-project"
+  username: "cluster-admin"
+```
+
+### Machine Deployment Configuration
+
+```yaml
+machineDeployment:
+  controlPlane:
+    replicas: 3
+    flavor: "m1.large"
+    image: "ubuntu-22.04"
+
+  workers:
+    replicas: 3
+    flavor: "m1.xlarge"
+    image: "ubuntu-22.04"
+
+networking:
+  podCIDR: "10.42.0.0/16"
+  serviceCIDR: "10.43.0.0/16"
+```
+
+### OpenStack Integration
+
+```yaml
+# Cloud Controller Manager
+openStackCCM:
+  enabled: true
+  customValues:
+    cloudConfig:
+      global:
+        auth-url: "https://openstack.example.com:5000/v3"
+
+# Cinder CSI Driver
+storage:
+  cinder:
+    enabled: true
+    storageClass:
+      name: "cinder-csi"
+      parameters:
+        type: "ssd"
+```
+
+{{ template "chart.homepageLine" . }}
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+## Add-ons Inventory
+
+This chart includes the following add-ons with their default versions:
+
+### Storage Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| longhorn | 106.2.0-up1.8.1 | ✅ | Longhorn storage |
+| longhorn-crd | 106.2.0-up1.8.1 | ✅ | Longhorn custom resource definitions |
+| ceph-csi-cephfs | 3.10.2 | ❌ | Ceph filesystem CSI driver |
+| ceph-csi-rbd | 3.10.1 | ❌ | Ceph block device CSI driver |
+| openebs | 3.10.0 | ❌ | OpenEBS storage |
+| openstack-cinder-csi | 2.1.1 | ❌ | OpenStack Cinder CSI driver |
+
+### Infrastructure Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| cert-manager | v1.17.1 | ❌ | X.509 certificate management |
+| metallb | 0.14.5 | ❌ | Load balancer implementation |
+| node-config-operator | 0.2.0 | ❌ | Node config operator |
+| ntpd-rs | 1.1.2 | ❌ | Network time protocol daemon |
+| sriov-network-operator | 1.5.2-up1.5.0 | ❌ | SR-IOV network device plugin |
+| whitesdn-controller | 0.3.0 | ❌ | SDN controller for network management |
+| x509-certificate-exporter | 3.18.1 | ❌ | X.509 certificate monitoring |
+
+### Networking Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| rke2-ingress-nginx | 4.12.103 | ❌ | NGINX ingress controller |
+
+### Cloud Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| openstack-cloud-controller-manager | 2.32.0 | ❌ | OpenStack cloud controller |
+
+### Monitoring Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| rancher-monitoring | 106.1.1-up69.8.2-rancher.5 | ❌ | Prometheus monitoring stack |
+| rancher-logging | 106.0.1-up4.10.0-rancher.4 | ❌ | Fluentd logging stack |
+
+### Virtualization Add-ons
+| Name | Version | Default Enabled | Description |
+|------|---------|----------------|-------------|
+| kubevirt | 0.5.0 | ❌ | Virtual machine management |
+| cdi | 0.5.0 | ❌ | kubevirt crd |
+| kubevirt-dashboard-extension | TBD | ❌ | Rancher UI extension for KubeVirt |
+
+### Default Add-on Configuration
+
+> ⚠️ **Warning**: When using `customValues`, they will completely override the default values shown below. Make sure to include any default settings you want to preserve.
+
+```yaml
+# Storage Add-ons
+storage:
+  longhorn:
+    enabled: true
+    # Default values (applied when customValues is empty):
+    # persistence:
+    #   defaultClass: false
+    # defaultSettings:
+    #   replicaSoftAntiAffinity: false
+    #   autoDeletePodWhenVolumeDetachedUnexpectedly: true
+    #   allowVolumeCreationWithDegradedAvailability: false
+    #   replicaAutoBalance: least-effort
+    #   storageMinimalAvailablePercentage: 25
+    #   storageOverProvisioningPercentage: 200
+    #   defaultDataPath: /var/lib/longhorn/
+    #   nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+    customValues: {}
+
+  cinder:
+    enabled: false  # OpenStack Cinder CSI
+    # Default values (applied when customValues is empty):
+    # secret:
+    #   enabled: true
+    #   name: cloud-config
+    customValues: {}
+
+  cephRBD:
+    enabled: false
+    clusterID: "aaaaaaaa-bbbb-1111-2222-33333ccccccc"
+    monitorList: []
+    pool: "volumes"
+    userID: "admin"
+    userKey: "AAAAAAAAAAAAAAAAAA/BBBBBBBBBBBBBBBBBBB=="
+    provisionerReplicaCount: 3
+    reclaimPolicy: "Retain"
+    enabledHostNetwork: false
+
+
+  openebs:
+    enabled: false
+
+# Infrastructure Add-ons (all disabled by default)
+certManager:
+  enabled: false
+
+metallb:
+  enabled: false
+
+# Networking Add-ons
+ingressNginx:
+  enabled: false
+
+# Cloud integration
+openStackCCM:
+  enabled: false
+
+
+# Monitoring Add-ons (disabled by default)
+monitoring:
+  enabled: false
+  thanos:
+    objectStorage:
+      accessKey: ""
+      bucket: ""
+      endpoint: ""
+      secretKey: ""
+  thanosIngress:
+    host: ""
+  # Default values (applied when customValues is empty):
+  # alertmanager:
+  #   enabled: false
+  # prometheus:
+  #   thanosService:
+  #     enabled: true
+  #   prometheusSpec:
+  #     tolerations:
+  #       - key: "node-role.kubernetes.io/control-plane"
+  #         operator: "Exists"
+  #         effect: "NoSchedule"
+  #     externalLabels:
+  #       k8s_cluster: `\{\{ cluster.name \}\}`
+  #     thanos:
+  #       objstoreConfig:
+  #         config:
+  #           access_key: `\{\{ thanos.objectStorage.accessKey \}\}`
+  #           bucket: `\{\{ thanos.objectStorage.bucket \}\}`
+  #           endpoint: `\{\{ thanos.objectStorage.endpoint \}\}`
+  #           insecure: true
+  #           secret_key: `\{\{ thanos.objectStorage.secretKey \}\}`
+  #         type: S3
+  customValues: {}
+
+logging:
+  enabled: false
+
+# Virtualization Add-ons (disabled by default)
+kubevirt:
+  enabled: false
+  # Default values (applied when customValues is empty):
+  # kubevirt:
+  #   configuration:
+  #     developerConfiguration:
+  #       useEmulation: true
+  customValues: {}
+```
+
+{{ template "chart.valuesSection" . }}
+
+
+{{ template "helm-docs.versionFooter" . }}

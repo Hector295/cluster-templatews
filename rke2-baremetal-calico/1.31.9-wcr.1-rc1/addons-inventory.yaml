@@ -1,0 +1,85 @@
+charts:
+  storage:
+    - name: longhorn-crd
+      version: 106.2.0-up1.8.1
+      path: storage/longhorn.yaml
+    - name: longhorn
+      version: 106.2.0-up1.8.1
+      path: storage/longhorn.yaml
+    - name: ceph-csi-cephfs
+      version: 3.10.2
+      path: storage/ceph-fs.yaml
+    - name: ceph-csi-rbd
+      version: 3.10.1
+      path: storage/ceph-rbd.yaml
+    - name: openebs
+      version: 3.10.0
+      path: storage/openebs.yaml
+
+  infra:
+    - name: cert-manager
+      version: v1.17.1
+      path: addons/infra/cert-manager.yaml
+    - name: metallb
+      version: 0.14.5
+      path: addons/infra/metallb.yaml
+    - name: node-config-operator
+      version: 0.2.0
+      path: addons/infra/node-config-operator.yaml
+    - name: ntpd-rs
+      version: 1.1.2
+      path: addons/infra/ntp.yaml
+    - name: sriov-crd
+      version: 1.5.2-up1.5.0
+      path: addons/infra/sriov-operator.yaml
+    - name: sriov-network-operator
+      version: 1.5.2-up1.5.0
+      path: addons/infra/sriov-operator.yaml
+    - name: whitesdn-controller
+      version: 0.3.0
+      path: addons/infra/sdn-controller.yaml
+    - name: x509-certificate-exporter
+      version: 3.18.1
+      path: addons/infra/x509cert-exporter.yaml
+    - name: crds-intel
+      version: 2.5.0
+      path: addons/infra/kubernetes-power-manager.yaml
+      notes: "Intel CPU power management variant"
+    - name: kubernetes-power-manager-intel
+      version: 2.5.0
+      path: addons/infra/kubernetes-power-manager.yaml
+      notes: "Intel CPU power management variant"
+
+  monitoring:
+    - name: rancher-monitoring-crd
+      version: 106.1.1-up69.8.2-rancher.5
+      path: addons/rancher-monitoring-crd.yaml
+    - name: rancher-monitoring
+      version: 106.1.1-up69.8.2-rancher.5
+      path: addons/rancher-monitoring.yaml
+    - name: rancher-logging-crd
+      version: 106.0.1-up4.10.0-rancher.4
+      path: addons/rancher-logging.yaml
+    - name: rancher-logging
+      version: 106.0.1-up4.10.0-rancher.4
+      path: addons/rancher-logging.yaml
+
+  virtualization:
+    - name: cdi
+      version: 0.5.0
+      path: addons/kubevirt.yaml
+    - name: kubevirt
+      version: 0.5.0
+      path: addons/kubevirt.yaml
+    - name: kubevirt-dashboard-extension
+      version: 1.3.1
+      path: addons/kubevirt.yaml
+
+# Additional metadata
+metadata:
+  template_name: rke2-baremetal-calico
+  template_version: 1.31.9-wcr.1-rc1
+  chart_type: ManagedChart
+  platform: baremetal
+  cni: calico
+  total_addons: 22

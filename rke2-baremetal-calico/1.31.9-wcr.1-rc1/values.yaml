@@ -1,75 +1,90 @@
-# -- Cluster configuration settings
+# -- RKE2 cluster core configuration
 cluster:
-  # -- Name of the Kubernetes cluster
+  # -- Cluster identifier used for naming resources and certificate generation
   name: "prod-cluster"
   
-  # -- ETCD configuration settings
+  # -- ETCD distributed key-value store configuration
   etcd:
-    # -- Defines the policy for ETCD metrics exposure
+    # -- Enable Prometheus metrics endpoint for ETCD monitoring (port 2381)
     exposeMetrics: false
-    # -- ETCD backup configuration
+    # -- ETCD backup and snapshot configuration
     backup:
-      # -- Disable automatic ETCD snapshots
+      # -- Disable automatic periodic snapshots (manual snapshots still available)
       disableAutomaticSnapshots: true
-    # -- Extra arguments for ETCD configuration (https://etcd.io/docs/v3.2/op-guide/configuration/)
+    # -- Additional command-line arguments for ETCD server startup
     extraArgs: []
-    # Example extraArgs:
-    # - election-timeout=1000
+    # Example extraArgs for ETCD tuning:
+    # - election-timeout=1000      # Election timeout in milliseconds
+    # - heartbeat-interval=100     # Heartbeat interval in milliseconds
   
-  # -- Kubernetes components configuration
+  # -- Kubernetes control plane components configuration
   kubeComponents:
-    # -- Kube Controller Manager configuration
+    # -- Controller Manager handles cluster-level functions like replication
     kubeControllerManager:
-      # -- Extra arguments for the kube controller manager (https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/)
+      # -- Additional arguments for controller manager (security, cloud provider, etc.)
       extraArgs: []
-      # Example extraArgs:
-      # - cloud-provider=external
+      # Common extraArgs examples:
+      # - cloud-provider=external            # Use external cloud provider
+      # - terminated-pod-gc-threshold=10     # Garbage collect terminated pods
     
-    # -- Kube API Server configuration
+    # -- API Server provides the Kubernetes API and validates objects
     kubeApiServer:
-      # -- Extra arguments for the kube apiserver (https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/)
+      # -- Additional arguments for API server (authentication, authorization, etc.)
       extraArgs: []
+      # Common extraArgs examples:
+      # - audit-log-path=/var/log/audit.log  # Enable audit logging
+      # - enable-admission-plugins=PodSecurity # Enable pod security standards
     
-    # -- Kube Scheduler configuration
+    # -- Scheduler assigns pods to nodes based on resource requirements
     kubeShceduler:
-      # -- Extra arguments for the kube scheduler (https://kubernetes.io/docs/reference/command-line-tools-reference/kube-scheduler/)
+      # -- Additional arguments for scheduler (policies, profiles, etc.)
       extraArgs: []
+      # Common extraArgs examples:
+      # - v=2                                # Increase verbosity level
+      # - kube-api-qps=50                    # API server QPS limit
     
-    # -- Kube Proxy configuration
+    # -- Proxy handles network rules and load balancing on each node
     kubeProxy:
-      # -- Extra arguments for the kube proxy (https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/)
+      # -- Additional arguments for kube-proxy (networking mode, IP tables, etc.)
       extraArgs: []
+      # Common extraArgs examples:
+      # - proxy-mode=ipvs                    # Use IPVS for better performance
+      # - cluster-cidr=10.42.0.0/16         # Pod network CIDR
     
-    # -- Kubelet configuration
+    # -- Kubelet manages pods and containers on each node
     kubelet:
-      # -- Extra arguments for the kubelet of all cluster nodes (https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/)
+      # -- Additional arguments for kubelet (container runtime, logging, security)
       extraArgs: []
+      # Common extraArgs examples:
+      # - max-pods=110                       # Maximum pods per node
+      # - container-log-max-size=10Mi        # Log rotation settings
   
-  # -- Labels for all cluster nodes
+  # -- Kubernetes labels applied to all cluster nodes for scheduling and selection
   labels: {}
-  # -- Annotations for all cluster nodes
+  # -- Kubernetes annotations applied to all cluster nodes for metadata
   annotations: {}
 
-# -- Baremetal infrastructure configuration
+# -- Baremetal infrastructure and node provisioning configuration
 infraConfig:
-  # -- Default users configuration for all nodes
+  # -- System users to create on all provisioned nodes (SSH access and administration)
   users:
     - name: whitestack
       password: whitestack
+      # -- SSH public keys for passwordless authentication (recommended for automation)
       authorized_keys:
         - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDyQwCd7gKxObBzDV357Nl+oQwMggFg0CseB4NtGvmusH3RLUXRuQqJQ5Keu+FKlRfG0QmBT+WEmr5rLN+LDbGKM54yAUDiJV9lWroOWaSbU8ynO9ZwXhPKgfnfvG/HmGTkfGpUQkfZYOSDetbfKJ7+mFOjDTvncgdErL14JbTXLFQ6vhqxk08a8sdCAxdiX+IJ4fy7jJW3TNqmH3dpE1OfKQe+CwKaksF0wjjXu4O+xj4BWv5a0V3ePOnGD9EVze3HZWkjUGmysGNjW6IayHydIDt1JB9Q6d+pMARQrZ6R4b6ySJ21vv7FwaIZ65kHxT/UMk9fbffhLxV0Dj3s5HKbwZoZU5HhAhj74zcptjer72YygdFs1uf8h5FIrmYAXgYuDfVN76nAUls2PC/jE79xtNxLxP045VerWZVg2fXZRKgqw++Wa5sd0IYmm++SVNV4I/VGSmLmTuxe5oWMPs4FtE78EQkkNYzch3cghxJjsgZiP/KMXlrtEfhInxU3YNc= hector@hector"
         - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCSIj+UglgxRvkwojlO4ZphGAgvhhrUm/Au165pE472VI5Wt5D5AGiCzt4Gw6J7P/LN+qY/XvP+T6hOf+OERg1AYNSNVX+3YszQBQjDP76PkjsNiNqk2mI1KoLhKzHUBP1mM349mwOQS40Wv+MdoF6YEYzgNVECxPExCo2pjRd6J65exiK5IfJamZVlyxwkDqiWjvhUdRKBc2PqyU7BEYltAmzzVsXiU+dgC4E5dce+OKmtoc0r137CI220TdkQMgeGHojgVQ7bfgovRajLoAcf3ntB2V7gU9gIY2rRKxqbHKyXWWIb/Rb2+w134avbxaFv8CTgTlE8N0h/vHL01Ta0dglQ16EyiC065NN+XctRPUXlaoiOBEN3OeArIjRsmLztleWtLG4/yzslG9V8TlTa0+pMArUeQICRl2OvqGUGmnE6ZIbhxJWhrWGRMbPTklKk2WwiXlc9pcN8mrwfdxYUzUYvn+SOHAXBqTL0N8MDVwcEyNLovpYW8skWWcPXQUH8HkmHlIzwiZd+qXSKOJAcuwcfGwk7MUWOP7NNpD3ltrnNClVIzL8BmaaCuABnNs+Y6rYhlNrscOIcrOH7a3Nbcz2/l2vPI9kvDM0BV8mDxwpOS/FS0BhqA8ry7hfbdLk02lVbXDbQJrAboSZzcR6iXLGAvoYmtNYVttc9t49ahw== luis@tt"
   
-  # -- Base image configuration for nodes
+  # -- Operating system image configuration for node provisioning
   image:
-    # -- URL of the base OS image for nodes
+    # -- HTTP URL where the OS installation image is served (must be accessible by BMC)
     url: http://10.100.100.2/ubuntu-22.iso
-    # -- Name of the OS image (ubuntu22 or ubuntu20)
+    # -- Image identifier used for node provisioning (ubuntu22 supports latest features)
     name: ubuntu22
   
-  # -- Kernel configuration for nodes
+  # -- Linux kernel configuration for provisioned nodes
   kernel:
-    # -- Kernel version for the nodes
+    # -- Specific kernel version to install (6.5-generic recommended for hardware compatibility)
     version: 6.5-generic
 
 # ===============

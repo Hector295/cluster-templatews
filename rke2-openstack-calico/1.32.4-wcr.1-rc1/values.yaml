@@ -33,6 +33,13 @@ cluster:
   labels: {} # labels for all cluster nodes
   # -- Kubernetes annotations
   annotations: {} # annotations for all cluster nodes
+  # -- Repository credentials for accessing private Helm charts and add-ons
+  addonsRepoCredentials:
+    secret:
+      # -- Name of the secret containing repository credentials
+      name: clustertemplates-auth-whitecruiserapps
+      # -- Namespace where the credentials secret is stored
+      namespace: cattle-system
 
 # ===============
 # OpenStack Global Configuration

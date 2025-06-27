@@ -65,14 +65,13 @@ cluster:
   labels: {}
   # -- Kubernetes annotations applied to all cluster nodes for metadata
   annotations: {}
-  
   # -- Repository credentials for accessing private Helm charts and add-ons
   addonsRepoCredentials:
     secret:
       # -- Name of the secret containing repository credentials
-      name: oci-whitecruiser-marketplace
+      name: clustertemplates-auth-whitecruiserapps
       # -- Namespace where the credentials secret is stored
-      namespace: fleet-default
+      namespace: cattle-system
 
 # -- OpenStack cloud infrastructure and authentication configuration
 infraConfig:

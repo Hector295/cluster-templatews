@@ -67,7 +67,7 @@ spec:
 
       # Habilitar Config Drive para metadatos - opcional
       configDrive: true
-      {{- if or (ne $.Values.workerNodes.defaults.hypervisorHostname "") (and (hasKey $worker "hypervisorHostname") (ne $worker.hypervisorHostname "")) }}
+      {{- if or (and (hasKey $.Values.workerNodes.defaults "hypervisorHostname") (ne $.Values.workerNodes.defaults.hypervisorHostname "")) (and (hasKey $worker "hypervisorHostname") (ne $worker.hypervisorHostname "")) }}
       schedulerHintAdditionalProperties:
         - name: "query"
           value:

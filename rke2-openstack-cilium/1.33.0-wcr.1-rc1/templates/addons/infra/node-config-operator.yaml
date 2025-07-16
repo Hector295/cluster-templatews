@@ -16,7 +16,7 @@ spec:
     wait: true
     waitForJobs: true
   namespace: nco-system
-  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  repoURL: oci://gcr.io/whitestack/whitecruiser/marketplace/esmeralda
   credentials:
     key: config.json
     secret:

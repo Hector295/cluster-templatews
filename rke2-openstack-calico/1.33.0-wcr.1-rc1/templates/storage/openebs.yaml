@@ -4,7 +4,7 @@ kind: HelmChartProxy
 metadata:
   name: {{ include "rke2-openstack-calico.name" . }}-openebs
 spec:
-  version: "3.10.0"
+  version: "4.2.0"
   chartName: openebs
   clusterSelector:
     matchLabels:
@@ -16,7 +16,7 @@ spec:
     wait: true
     waitForJobs: true
   namespace: default
-  repoURL: oci://us-central1-docker.pkg.dev/whitestack/whitecruiser/marketplace/drummond
+  repoURL: oci://gcr.io/whitestack/whitecruiser/marketplace/esmeralda
   credentials:
     key: config.json
     secret:

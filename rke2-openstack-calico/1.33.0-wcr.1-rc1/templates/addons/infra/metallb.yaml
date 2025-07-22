@@ -24,6 +24,6 @@ spec:
       namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
 {{- if not (empty .Values.metallb.customValues) }}
   valuesTemplate: |
-    {{ toYaml .Values.metallb.customValues }}
+    {{- toYaml .Values.metallb.customValues | nindent 4 }}
 {{- end }}
 {{- end }}

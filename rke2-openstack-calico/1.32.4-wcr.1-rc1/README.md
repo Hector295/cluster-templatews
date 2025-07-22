@@ -1,6 +1,6 @@
 # rke2-openstack-calico
 
-![Version: 1.32.4-wcr.1-rc1](https://img.shields.io/badge/Version-1.32.4--wcr.1--rc1-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
+![Version: 1.32.4+wcr.1-rc1](https://img.shields.io/badge/Version-1.32.4+wcr.1--rc1-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
 
 Cluster templates for rke2 with CAPI. Kubernetes version: 1.32.4
 
@@ -26,7 +26,7 @@ This Helm chart deploys an RKE2 Kubernetes cluster on OpenStack infrastructure u
 
 ```bash
 # Download and install the cluster template
-helm install rke2-openstack-calico-1.32.4-wcr.1-rc1.tgz -f custom-values.yaml .
+helm install rke2-openstack-calico-1.32.4+wcr.1-rc1.tgz -f custom-values.yaml .
 
 # Or via WhiteCruiser UI using the cluster template
 ```

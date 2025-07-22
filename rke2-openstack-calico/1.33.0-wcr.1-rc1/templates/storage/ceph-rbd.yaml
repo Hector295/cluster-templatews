@@ -24,7 +24,7 @@ spec:
       namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
   valuesTemplate: |
     {{- if and (hasKey .Values.storage "cephRBD") (hasKey .Values.storage.cephRBD "customValues") (not (empty .Values.storage.cephRBD.customValues)) }}
-    {{- toYaml .Values.storage.ceph.customValues }}
+    {{- toYaml .Values.storage.ceph.customValues | nindent 4 }}
     {{- else }}
     csiConfig:
     - clusterID: {{ .Values.storage.cephRBD.clusterID }}

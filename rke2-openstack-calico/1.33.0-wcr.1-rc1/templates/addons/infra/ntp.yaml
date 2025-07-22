@@ -24,6 +24,6 @@ spec:
       namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
   valuesTemplate: |
     {{- if and (hasKey .Values.ntp "customValues") (not (empty .Values.ntp.customValues)) }}
-    {{- toYaml .Values.ntp.customValues }}
+    {{- toYaml .Values.ntp.customValues | nindent 4 }}
     {{- end }}
 {{- end }}

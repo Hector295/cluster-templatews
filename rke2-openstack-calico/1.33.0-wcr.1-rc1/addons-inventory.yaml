@@ -38,9 +38,6 @@ charts:
     - name: sriov-network-operator
       version: 1.5.2-up1.5.0
       path: addons/infra/sriov-operator.yaml
-    - name: whitesdn-controller
-      version: 0.3.0
-      path: addons/infra/sdn-controller.yaml
     - name: x509-certificate-exporter
       version: 3.18.1
       path: addons/infra/x509cert-exporter.yaml

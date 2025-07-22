@@ -112,7 +112,6 @@ This chart includes the following add-ons with their default versions:
 | node-config-operator | 0.2.0 | ❌ | Node config operator |
 | ntpd-rs | 1.1.2 | ❌ | Network time protocol daemon |
 | sriov-network-operator | 1.5.2-up1.5.0 | ❌ | SR-IOV network device plugin |
-| whitesdn-controller | 0.3.0 | ❌ | SDN controller for network management |
 | x509-certificate-exporter | 3.18.1 | ❌ | X.509 certificate monitoring |
 
 ### Networking Add-ons

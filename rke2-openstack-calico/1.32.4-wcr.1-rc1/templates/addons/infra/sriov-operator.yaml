@@ -56,7 +56,7 @@ spec:
       disableDrain: false
       configurationMode: daemon
     {{- if and (hasKey .Values.sriovOperator "customValues") (not (empty .Values.sriovOperator.customValues)) }}
-    {{- toYaml .Values.sriovOperator.customValues }}
+    {{- toYaml .Values.sriovOperator.customValues | nindent 4 }}
     {{- end }}
 ---
 {{- end }}

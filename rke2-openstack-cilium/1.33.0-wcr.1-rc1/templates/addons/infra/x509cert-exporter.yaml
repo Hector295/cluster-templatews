@@ -1,4 +1,4 @@
-{{ if .Values.sdnController.enabled }}
+{{ if .Values.x509CertExporter.enabled }}
 apiVersion: addons.cluster.x-k8s.io/v1alpha1
 kind: HelmChartProxy
 metadata:
@@ -46,6 +46,6 @@ spec:
     rbacProxy:
       enabled: false
     {{- if and (hasKey .Values.x509CertExporter "customValues") (not (empty .Values.x509CertExporter.customValues)) }}
-    {{- toYaml .Values.x509CertExporter.customValues }}
+    {{- toYaml .Values.x509CertExporter.customValues | nindent 4 }}
     {{- end }}
 {{- end }}

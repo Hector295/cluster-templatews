@@ -274,7 +274,7 @@ kubevirt:
 | cluster.addonsRepoCredentials | object | `{"secret":{"name":"oci-whitecruiser-marketplace","namespace":"fleet-default"}}` | Repository credentials for accessing private Helm charts and add-ons |
 | cluster.addonsRepoCredentials.secret.name | string | `"oci-whitecruiser-marketplace"` | Name of the secret containing repository credentials |
 | cluster.addonsRepoCredentials.secret.namespace | string | `"fleet-default"` | Namespace where the credentials secret is stored |
-| infraConfig | object | `{"authUrl":"https://whitecloud.intra.whitestack.com:5000/v3","availabilityZones":["HAL1"],"caCerts":{"configMap":{"name":"","namespace":""}},"domainName":"Default","keypairName":"Hector","password":{"secret":{"name":"passopenstack","namespace":"default"}},"principalNetwork":{"netName":"intra-net-products","subnetName":"net-products"},"region":"RegionOne","sshUser":"ubuntu","tenantName":"team-products","username":"hventura"}` | OpenStack cloud infrastructure and authentication configuration |
+| infraConfig | object | `{"authUrl":"https://whitecloud.intra.whitestack.com:5000/v3","availabilityZones":["HAL1"],"caCerts":{"configMap":{"name":"","namespace":""}},"domainName":"Default","keypairName":"Hector","password":{"secret":{"name":"passopenstack","namespace":"default"}},"mainNetwork":{"netName":"intra-net-products","subnetName":"net-products"},"region":"RegionOne","sshUser":"ubuntu","tenantName":"team-products","username":"hventura"}` | OpenStack cloud infrastructure and authentication configuration |
 | infraConfig.authUrl | string | `"https://whitecloud.intra.whitestack.com:5000/v3"` | OpenStack Keystone authentication URL (identity service endpoint) |
 | infraConfig.availabilityZones | list | `["HAL1"]` | List of OpenStack availability zones for node distribution and high availability |
 | infraConfig.password.secret.name | string | `"passopenstack"` | Name of the component |
@@ -335,9 +335,6 @@ kubevirt:
 | nodeConfigOperator.customValues | object | `{}` | Custom values override |
 | certManager.enabled | bool | `false` | Enable or disable this component |
 | certManager.customValues | object | `{}` | Custom values override |
-| sdnController.enabled | bool | `true` | Enable or disable this component |
-| sdnController.whitesdnSecrets.password | string | `"kcatsetiw"` |  |
-| sdnController.customValues | object | `{}` | Custom values override |
 | ntp.enabled | bool | `true` | Enable or disable this component |
 | ntp.customValues | object | `{}` | Custom values override |
 | x509CertExporter.enabled | bool | `true` | Enable or disable this component |

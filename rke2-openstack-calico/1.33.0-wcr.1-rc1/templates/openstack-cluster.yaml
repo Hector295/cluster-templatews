@@ -13,12 +13,12 @@ spec:
   # Configuracion de red interna
   network:
     filter:
-      name: {{ .Values.infraConfig.principalNetwork.netName }}
+      name: {{ .Values.infraConfig.mainNetwork.netName }}
 
   # Configuración de subred
   subnets:
     - filter:
-        name: {{ .Values.infraConfig.principalNetwork.subnetName }}
+        name: {{ .Values.infraConfig.mainNetwork.subnetName }}
 
   controlPlaneAvailabilityZones:
   {{- range $.Values.infraConfig.availabilityZones }}

@@ -24,6 +24,6 @@ spec:
       namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
 {{- if not (empty .Values.ingressNginx.customValues) }}
   valuesTemplate: |
-  {{- toYaml .Values.ingressNginx.customValues }}
+    {{- toYaml .Values.ingressNginx.customValues | nindent 4 }}
 {{- end }}
 {{- end }}

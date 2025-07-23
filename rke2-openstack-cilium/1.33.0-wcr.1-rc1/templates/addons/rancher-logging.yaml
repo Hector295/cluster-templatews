@@ -48,7 +48,7 @@ spec:
       namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
   valuesTemplate: |
     {{- if and (hasKey .Values.logging "customValues") (not (empty .Values.logging.customValues)) }}
-    {{- toYaml .Values.logging.customValues }}
+    {{- toYaml .Values.logging.customValues | nindent 4 }}
     {{- else }}
     rke2:
       enabled: true

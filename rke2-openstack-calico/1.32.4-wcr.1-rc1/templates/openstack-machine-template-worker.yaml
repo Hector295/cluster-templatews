@@ -23,7 +23,7 @@ spec:
       ports:
         - network:
             filter:
-              name: {{ $.Values.infraConfig.principalNetwork.netName }}
+              name: {{ $.Values.infraConfig.mainNetwork.netName }}
         {{- if hasKey $worker "additionalPorts" }}
         {{- range $worker.additionalPorts }}
         - network:

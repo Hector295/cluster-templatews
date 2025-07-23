@@ -91,17 +91,17 @@ questions:
     default: "hventura"
     group: "OpenStack"
 
-  - variable: "infraConfig.principalNetwork.netName"
-    label: "Principal Network"
-    description: "Principal network name"
+  - variable: "infraConfig.mainNetwork.netName"
+    label: "MainNetwork"
+    description: "Mainnetwork name"
     type: "string"
     required: true
     default: "intra-net-products"
     group: "OpenStack"
 
-  - variable: "infraConfig.principalNetwork.subnetName"
-    label: "Principal Subnet"
-    description: "Principal subnet name"
+  - variable: "infraConfig.mainNetwork.subnetName"
+    label: "MainSubnet"
+    description: "Mainsubnet name"
     type: "string"
     required: true
     default: "net-products"

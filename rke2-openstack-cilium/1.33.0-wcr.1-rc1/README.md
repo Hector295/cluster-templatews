@@ -1,6 +1,6 @@
 # rke2-openstack-cilium
 
-![Version: 1.33.0-wcr.1-rc1](https://img.shields.io/badge/Version-1.33.0--wcr.1--rc1-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
+![Version: 1.33.0+wcr.1-rc1](https://img.shields.io/badge/Version-1.33.0+wcr.1--rc1-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
 
 Cluster templates for rke2 with CAPI. Kubernetes version: 1.33.0
 
@@ -103,7 +103,6 @@ This chart includes the following add-ons with their default versions:
 | node-config-operator | 0.2.0 | ❌ | Node config operator |
 | ntpd-rs | 1.1.2 | ❌ | Network time protocol daemon |
 | sriov-network-operator | 1.5.2-up1.5.0 | ❌ | SR-IOV network device plugin |
-| whitesdn-controller | 0.3.0 | ❌ | SDN controller for network management |
 | x509-certificate-exporter | 3.18.1 | ❌ | X.509 certificate monitoring |
 
 ### Networking Add-ons
@@ -202,11 +201,6 @@ ntp:
 
 sriovOperator:
   enabled: true  # Enabled by default in this template
-
-sdnController:
-  enabled: true  # Enabled by default in this template (whitesdn-controller)
-  whitesdnSecrets:
-    password: "kcatsetiw"
 
 x509CertExporter:
   enabled: true  # Enabled by default in this template
@@ -377,7 +371,7 @@ cniConfig:
 | cluster.addonsRepoCredentials | object | `{"secret":{"name":"oci-whitecruiser-marketplace","namespace":"fleet-default"}}` | Repository credentials for accessing private Helm charts and add-ons |
 | cluster.addonsRepoCredentials.secret.name | string | `"oci-whitecruiser-marketplace"` | Name of the secret containing repository credentials |
 | cluster.addonsRepoCredentials.secret.namespace | string | `"fleet-default"` | Namespace where the credentials secret is stored |
-| infraConfig | object | `{"authUrl":"https://whitecloud.intra.whitestack.com:5000/v3","availabilityZones":["HAL1"],"caCerts":{"configMap":{"name":"","namespace":""}},"domainName":"Default","keypairName":"Hector","password":{"secret":{"name":"passopenstack","namespace":"default"}},"principalNetwork":{"netName":"intra-net-products","subnetName":"net-products"},"region":"RegionOne","sshUser":"ubuntu","tenantName":"team-products","username":"hventura"}` | OpenStack cloud infrastructure and authentication configuration |
+| infraConfig | object | `{"authUrl":"https://whitecloud.intra.whitestack.com:5000/v3","availabilityZones":["HAL1"],"caCerts":{"configMap":{"name":"","namespace":""}},"domainName":"Default","keypairName":"Hector","password":{"secret":{"name":"passopenstack","namespace":"default"}},"mainNetwork":{"netName":"intra-net-products","subnetName":"net-products"},"region":"RegionOne","sshUser":"ubuntu","tenantName":"team-products","username":"hventura"}` | OpenStack cloud infrastructure and authentication configuration |
 | infraConfig.authUrl | string | `"https://whitecloud.intra.whitestack.com:5000/v3"` | OpenStack Keystone authentication URL (identity service endpoint) |
 | infraConfig.availabilityZones | list | `["HAL1"]` | List of OpenStack availability zones for node distribution and high availability |
 | infraConfig.password.secret.name | string | `"passopenstack"` | Name of the component |
@@ -438,9 +432,6 @@ cniConfig:
 | nodeConfigOperator.customValues | object | `{}` | Custom values override |
 | certManager.enabled | bool | `false` | Enable or disable this component |
 | certManager.customValues | object | `{}` | Custom values override |
-| sdnController.enabled | bool | `true` | Enable or disable this component |
-| sdnController.whitesdnSecrets.password | string | `"kcatsetiw"` |  |
-| sdnController.customValues | object | `{}` | Custom values override |
 | ntp.enabled | bool | `true` | Enable or disable this component |
 | ntp.customValues | object | `{}` | Custom values override |
 | x509CertExporter.enabled | bool | `true` | Enable or disable this component |

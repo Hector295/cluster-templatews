@@ -6,6 +6,7 @@ metadata:
 spec:
   version: "0.2.0"
   chartName: node-config-operator
+  releaseName: nco
   clusterSelector:
     matchLabels:
     {{- include "rke2-openstack-calico.labels" . | nindent 6 }}
@@ -24,7 +25,7 @@ spec:
       namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
   valuesTemplate: |
     {{- if and (hasKey .Values.nodeConfigOperator "customValues") (not (empty .Values.nodeConfigOperator.customValues)) }}
-    {{- toYaml .Values.nodeConfigOperator.customValues }}
+    {{- toYaml .Values.nodeConfigOperator.customValues | nindent 4 }}
     {{- end }}
     managerConfig:
       aptEnabled: {{ .Values.nodeConfigOperator.managerConfig.aptEnabled }}

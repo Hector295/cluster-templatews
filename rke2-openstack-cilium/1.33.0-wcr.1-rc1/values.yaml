@@ -76,25 +76,26 @@ cluster:
 # -- OpenStack cloud infrastructure and authentication configuration
 infraConfig:
   # -- OpenStack Keystone authentication URL (identity service endpoint)
-  authUrl: https://whitecloud.intra.whitestack.com:5000/v3
+  authUrl: "" # e.g https://whitecloud.intra.whitestack.com:5000/v3
   # -- List of OpenStack availability zones for node distribution and high availability
-  availabilityZones:
-    - HAL1
+  availabilityZones: []
+#  availabilityZones:
+#    - HAL1
   domainName: Default
-  keypairName: Hector
+  keypairName: ""
   region: RegionOne
   sshUser: ubuntu
-  tenantName: team-products
-  username: hventura
-  principalNetwork:
-    netName: intra-net-products
-    subnetName: net-products
+  tenantName: ""
+  username: ""
+  mainNetwork:
+    netName: ""
+    subnetName: ""
   password:
     secret:
       # -- Name of the component
-      name: passopenstack
+      name: ""
       # -- Kubernetes namespace
-      namespace: default
+      namespace: ""
   caCerts:
     configMap:
       # -- Name of the component
@@ -117,24 +118,27 @@ controlPlaneNodes:
     - "node-role.kubernetes.io/control-plane=true"
   # -- Kubernetes annotations
   annotations: {}
-  flavorName: m1.large
-  imageName: Ubuntu 22.04 LTS
-  rootVolume:
-    sizeGiB: "40"
-    availabilityZone: nova
-  securityGroups:
-    - whitecicd-whitemist-deployment_sg
-  hypervisorHostname: "hal1"
-  additionalPorts:
-    - netName: red_whitecruiser_hector
-      subnetName: subred_whitecruiser_hector
+  flavorName: ""
+  imageName: ""
+  rootVolume: {}
+#  rootVolume:
+#    sizeGiB: "40"
+#    availabilityZone: nova
+  securityGroups: []
+#  securityGroups:
+#    - whitecicd-whitemist-deployment_sg
+  hypervisorHostname: ""
+  additionalPorts: []
+#  additionalPorts:
+#    - netName: red_whitecruiser_hector
+#      subnetName: subred_whitecruiser_hector
 
 # ===============
 # Worker Nodes
 # ===============
 # -- worker nodes configuration
 workerNodes:
-  imageName: Ubuntu 22.04 LTS
+  imageName: ""
   defaults:
     taints:
       - key: node-role.kubernetes.io/worker
@@ -142,36 +146,31 @@ workerNodes:
     # -- Kubernetes labels
     labels:
       - "node-role.kubernetes.io/worker=true"
-    flavorName: m1.large
-    quantity: 2
-    hypervisorHostname: "hal1"
-    securityGroups:
-      - whitecicd-whitemist-deployment_sg
-    additionalPorts:
-      - netName: red_whitecruiser_hector
-        subnetName: subred_whitecruiser_hector
-    rootVolume:
-      sizeGiB: "50"
-      availabilityZone: nova
-  nodes:
-    - name: worker-node-sin-flavor
-      quantity: 1
-      hypervisorHostname: "hal2"
-      # -- Kubernetes labels
-      labels:
-        - "node-role.kubernetes.io/worker=true"
-        - "node-role.kubernetes.io/worker-diff=true"
-      rootVolume:
-        sizeGiB: "60"
-        availabilityZone: nova
-
-    - name: worker-node-medium
-      flavorName: m1.medium
-      additionalPorts:
-        - netName: red_whitecruiser_hector
-          subnetName: subred_whitecruiser_hector
-        - netName: red_whitecruiser_ventura
-          subnetName: subred_whitecruiser_ventura
+    flavorName: ""
+    quantity: 1
+    hypervisorHostname: ""
+    securityGroups: []
+    additionalPorts: []
+    rootVolume: {}
+  nodes: []
+#    - name: worker-node-sin-flavor
+#      quantity: 1
+#      hypervisorHostname: "hal2"
+#      # -- Kubernetes labels
+#      labels:
+#        - "node-role.kubernetes.io/worker=true"
+#        - "node-role.kubernetes.io/worker-diff=true"
+#      rootVolume:
+#        sizeGiB: "60"
+#        availabilityZone: nova
+#
+#    - name: worker-node-medium
+#      flavorName: m1.medium
+#      additionalPorts:
+#        - netName: red_whitecruiser_hector
+#          subnetName: subred_whitecruiser_hector
+#        - netName: red_whitecruiser_ventura
+#          subnetName: subred_whitecruiser_ventura
 
 # -- cni configuration
 cniConfig:
@@ -295,13 +294,6 @@ certManager:
   enabled: false
   # -- Custom values override
   customValues:  {}
-sdnController:
-  # -- Enable or disable this component
-  enabled: true
-  whitesdnSecrets:
-    password: "kcatsetiw"
-  # -- Custom values override
-  customValues: { }
 ntp:
   # -- Enable or disable this component
   enabled: true

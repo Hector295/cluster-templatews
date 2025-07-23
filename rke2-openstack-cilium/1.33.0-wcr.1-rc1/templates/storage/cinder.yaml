@@ -24,7 +24,7 @@ spec:
       namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
   valuesTemplate: |
     {{- if and (hasKey .Values.storage "cinder") (hasKey .Values.storage.cinder "customValues") (not (empty .Values.storage.cinder.customValues)) }}
-    {{- toYaml .Values.storage.cinder.customValues }}
+    {{- toYaml .Values.storage.cinder.customValues | nindent 4 }}
     {{- end }}
     secret:
       enabled: true

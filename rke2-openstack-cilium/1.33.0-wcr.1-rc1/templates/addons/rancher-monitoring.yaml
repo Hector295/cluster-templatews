@@ -24,7 +24,7 @@ spec:
       namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
   valuesTemplate: |
     {{- if and (hasKey .Values.monitoring "customValues") (not (empty .Values.monitoring.customValues)) }}
-    {{- toYaml .Values.monitoring.customValues }}
+    {{- toYaml .Values.monitoring.customValues | nindent 4 }}
     {{- else }}
     alertmanager:
       enabled: false

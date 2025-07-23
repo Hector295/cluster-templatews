@@ -87,7 +87,7 @@ infraConfig:
   sshUser: ubuntu
   tenantName: ""
   username: ""
-  principalNetwork:
+  mainNetwork:
     netName: ""
     subnetName: ""
   password:

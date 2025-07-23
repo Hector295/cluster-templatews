@@ -81,7 +81,7 @@ charts:
 # Additional metadata
 metadata:
   template_name: rke2-openstack-calico
-  template_version: 1.33.0-wcr.1-rc1
+  template_version: 1.33.0+wcr.1-rc1
   chart_type: HelmChartProxy
   platform: openstack
   cni: calico

@@ -24,7 +24,7 @@ spec:
       namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
   valuesTemplate: |
     {{- if and (hasKey .Values.storage "openebs") (hasKey .Values.storage.openebs "customValues") (not (empty .Values.storage.openebs.customValues)) }}
-    {{- toYaml .Values.storage.openebs.customValues }}
+    {{- toYaml .Values.storage.openebs.customValues | nindent 4 }}
     {{- else }}
     apiserver:
       enabled: false

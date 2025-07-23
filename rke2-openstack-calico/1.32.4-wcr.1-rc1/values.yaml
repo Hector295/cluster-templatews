@@ -1,38 +1,70 @@
+# -- RKE2 cluster core configuration
 cluster:
+  # -- Virtual IP address for the Kubernetes API server (load balancer endpoint)
   apiServerVIP: <changeme> # e.g. 10.101.15.245
-  # -- Name of the component
-  name: "prod-cluster" # cluster name
+  # -- Cluster identifier used for naming resources and certificate generation
+  name: "prod-cluster"
+
+  # -- ETCD distributed key-value store configuration
   etcd:
-    exposeMetrics: false # ExposeMetrics defines the policy for ETCD metrics exposure
-    # -- Backup configuration
+    # -- Enable Prometheus metrics endpoint for ETCD monitoring (port 2381)
+    exposeMetrics: false
+    # -- ETCD backup and snapshot configuration
     backup:
+      # -- Disable automatic periodic snapshots (manual snapshots still available)
       disableAutomaticSnapshots: true
-    # -- Additional command line arguments
-    extraArgs: [] # etcd configuration https://etcd.io/docs/v3.2/op-guide/configuration/
-  # extraArgs:
-  # - election-timeout=1000
+    # -- Additional command-line arguments for ETCD server startup
+    extraArgs: []
+    # Example extraArgs for ETCD tuning:
+    # - election-timeout=1000      # Election timeout in milliseconds
+    # - heartbeat-interval=100     # Heartbeat interval in milliseconds
+
+  # -- Kubernetes control plane components configuration
   kubeComponents:
+    # -- Controller Manager handles cluster-level functions like replication
     kubeControllerManager:
-      # -- Additional command line arguments
-      extraArgs: [] # extra args for the kube controller manager. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/
-      # extraArgs:
-      # - cloud-provider=external
+      # -- Additional arguments for controller manager (security, cloud provider, etc.)
+      extraArgs: []
+      # Common extraArgs examples:
+      # - cloud-provider=external            # Use external cloud provider
+      # - terminated-pod-gc-threshold=10     # Garbage collect terminated pods
+
+    # -- API Server provides the Kubernetes API and validates objects
     kubeApiServer:
-      # -- Additional command line arguments
-      extraArgs: [] # extra args for the kube apiserver. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
+      # -- Additional arguments for API server (authentication, authorization, etc.)
+      extraArgs: []
+      # Common extraArgs examples:
+      # - audit-log-path=/var/log/audit.log  # Enable audit logging
+      # - enable-admission-plugins=PodSecurity # Enable pod security standards
+
+    # -- Scheduler assigns pods to nodes based on resource requirements
     kubeShceduler:
-      # -- Additional command line arguments
-      extraArgs: [] # extra args for the kube scheduler. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-scheduler/
+      # -- Additional arguments for scheduler (policies, profiles, etc.)
+      extraArgs: []
+      # Common extraArgs examples:
+      # - v=2                                # Increase verbosity level
+      # - kube-api-qps=50                    # API server QPS limit
+
+    # -- Proxy handles network rules and load balancing on each node
     kubeProxy:
-      # -- Additional command line arguments
-      extraArgs: [] # extra args for the kube proxy. https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/
+      # -- Additional arguments for kube-proxy (networking mode, IP tables, etc.)
+      extraArgs: []
+      # Common extraArgs examples:
+      # - proxy-mode=ipvs                    # Use IPVS for better performance
+      # - cluster-cidr=10.42.0.0/16         # Pod network CIDR
+
+    # -- Kubelet manages pods and containers on each node
     kubelet:
-      # -- Additional command line arguments
-      extraArgs: [] # extra args for the kubelet of all cluster nodes. https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/
-  # -- Kubernetes labels
-  labels: {} # labels for all cluster nodes
-  # -- Kubernetes annotations
-  annotations: {} # annotations for all cluster nodes
+      # -- Additional arguments for kubelet (container runtime, logging, security)
+      extraArgs: []
+      # Common extraArgs examples:
+      # - max-pods=110                       # Maximum pods per node
+      # - container-log-max-size=10Mi        # Log rotation settings
+
+  # -- Kubernetes labels applied to all cluster nodes for scheduling and selection
+  labels: {}
+  # -- Kubernetes annotations applied to all cluster nodes for metadata
+  annotations: {}
   # -- Repository credentials for accessing private Helm charts and add-ons
   addonsRepoCredentials:
     secret:
@@ -41,29 +73,29 @@ cluster:
       # -- Namespace where the credentials secret is stored
       namespace: cattle-system
 
-# ===============
-# OpenStack Global Configuration
-# ===============
-# -- infra configuration
+# -- OpenStack cloud infrastructure and authentication configuration
 infraConfig:
-  authUrl: https://whitecloud.intra.whitestack.com:5000/v3
-  availabilityZones:
-    - HAL1
+  # -- OpenStack Keystone authentication URL (identity service endpoint)
+  authUrl: "" # e.g https://whitecloud.intra.whitestack.com:5000/v3
+  # -- List of OpenStack availability zones for node distribution and high availability
+  availabilityZones: []
+#  availabilityZones:
+#    - HAL1
   domainName: Default
-  keypairName: Hector
+  keypairName: ""
   region: RegionOne
   sshUser: ubuntu
-  tenantName: team-products
-  username: hventura
-  principalNetwork:
-    netName: intra-net-products
-    subnetName: net-products
+  tenantName: ""
+  username: ""
+  mainNetwork:
+    netName: ""
+    subnetName: ""
   password:
     secret:
       # -- Name of the component
-      name: passopenstack
+      name: ""
       # -- Kubernetes namespace
-      namespace: default
+      namespace: ""
   caCerts:
     configMap:
       # -- Name of the component
@@ -86,24 +118,27 @@ controlPlaneNodes:
     - "node-role.kubernetes.io/control-plane=true"
   # -- Kubernetes annotations
   annotations: {}
-  flavorName: m1.large
-  imageName: Ubuntu 22.04 LTS
-  rootVolume:
-    sizeGiB: "40"
-    availabilityZone: nova
-  securityGroups:
-    - whitecicd-whitemist-deployment_sg
-  hypervisorHostname: "hal1"
-  additionalPorts:
-    - netName: red_whitecruiser_hector
-      subnetName: subred_whitecruiser_hector
+  flavorName: ""
+  imageName: ""
+  rootVolume: {}
+#  rootVolume:
+#    sizeGiB: "40"
+#    availabilityZone: nova
+  securityGroups: []
+#  securityGroups:
+#    - whitecicd-whitemist-deployment_sg
+  hypervisorHostname: ""
+  additionalPorts: []
+#  additionalPorts:
+#    - netName: red_whitecruiser_hector
+#      subnetName: subred_whitecruiser_hector
 
 # ===============
 # Worker Nodes
 # ===============
 # -- worker nodes configuration
 workerNodes:
-  imageName: Ubuntu 22.04 LTS
+  imageName: ""
   defaults:
     taints:
       - key: node-role.kubernetes.io/worker
@@ -111,36 +146,31 @@ workerNodes:
     # -- Kubernetes labels
     labels:
       - "node-role.kubernetes.io/worker=true"
-    flavorName: m1.large
-    quantity: 2
-    hypervisorHostname: "hal1"
-    securityGroups:
-      - whitecicd-whitemist-deployment_sg
-    additionalPorts:
-      - netName: red_whitecruiser_hector
-        subnetName: subred_whitecruiser_hector
-    rootVolume:
-      sizeGiB: "50"
-      availabilityZone: nova
-  nodes:
-    - name: worker-node-sin-flavor
-      quantity: 1
-      hypervisorHostname: "hal2"
-      # -- Kubernetes labels
-      labels:
-        - "node-role.kubernetes.io/worker=true"
-        - "node-role.kubernetes.io/worker-diff=true"
-      rootVolume:
-        sizeGiB: "60"
-        availabilityZone: nova
-
-    - name: worker-node-medium
-      flavorName: m1.medium
-      additionalPorts:
-        - netName: red_whitecruiser_hector
-          subnetName: subred_whitecruiser_hector
-        - netName: red_whitecruiser_ventura
-          subnetName: subred_whitecruiser_ventura
+    flavorName: ""
+    quantity: 1
+    hypervisorHostname: ""
+    securityGroups: []
+    additionalPorts: []
+    rootVolume: {}
+  nodes: []
+#    - name: worker-node-sin-flavor
+#      quantity: 1
+#      hypervisorHostname: "hal2"
+#      # -- Kubernetes labels
+#      labels:
+#        - "node-role.kubernetes.io/worker=true"
+#        - "node-role.kubernetes.io/worker-diff=true"
+#      rootVolume:
+#        sizeGiB: "60"
+#        availabilityZone: nova
+#
+#    - name: worker-node-medium
+#      flavorName: m1.medium
+#      additionalPorts:
+#        - netName: red_whitecruiser_hector
+#          subnetName: subred_whitecruiser_hector
+#        - netName: red_whitecruiser_ventura
+#          subnetName: subred_whitecruiser_ventura
 
 # -- cni configuration
 cniConfig:
@@ -265,13 +295,6 @@ certManager:
   enabled: false
   # -- Custom values override
   customValues:  {}
-sdnController:
-  # -- Enable or disable this component
-  enabled: true
-  whitesdnSecrets:
-    password: "kcatsetiw"
-  # -- Custom values override
-  customValues: { }
 ntp:
   # -- Enable or disable this component
   enabled: true

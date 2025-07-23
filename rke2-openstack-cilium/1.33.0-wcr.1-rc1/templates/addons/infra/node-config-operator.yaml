@@ -5,6 +5,7 @@ metadata:
   name: {{ include "rke2-openstack-cilium.name" . }}-nco
 spec:
   version: "0.2.0"
+  releaseName: nco
   chartName: node-config-operator
   clusterSelector:
     matchLabels:
@@ -24,7 +25,7 @@ spec:
       namespace: {{ .Values.cluster.addonsRepoCredentials.secret.namespace}}
   valuesTemplate: |
     {{- if and (hasKey .Values.nodeConfigOperator "customValues") (not (empty .Values.nodeConfigOperator.customValues)) }}
-    {{- toYaml .Values.nodeConfigOperator.customValues }}
+    {{- toYaml .Values.nodeConfigOperator.customValues | nindent 4 }}
     {{- end }}
     managerConfig:
       aptEnabled: {{ .Values.nodeConfigOperator.managerConfig.aptEnabled }}

@@ -112,7 +112,6 @@ This chart includes the following add-ons with their default versions:
 | node-config-operator | 0.2.0 | ❌ | Node config operator |
 | ntpd-rs | 1.1.2 | ❌ | Network time protocol daemon |
 | sriov-network-operator | 1.5.2-up1.5.0 | ❌ | SR-IOV network device plugin |
-| whitesdn-controller | 0.3.0 | ❌ | SDN controller for network management |
 | x509-certificate-exporter | 3.18.1 | ❌ | X.509 certificate monitoring |
 
 ### Networking Add-ons
@@ -263,7 +262,7 @@ kubevirt:
 | cluster.kubeComponents.kubelet.extraArgs | list | `[]` | Additional command line arguments |
 | cluster.labels | object | `{}` | Kubernetes labels |
 | cluster.annotations | object | `{}` | Kubernetes annotations |
-| infraConfig | object | `{"authUrl":"https://whitecloud.intra.whitestack.com:5000/v3","availabilityZones":["HAL1"],"caCerts":{"configMap":{"name":"","namespace":""}},"domainName":"Default","keypairName":"Hector","password":{"secret":{"name":"passopenstack","namespace":"default"}},"principalNetwork":{"netName":"intra-net-products","subnetName":"net-products"},"region":"RegionOne","sshUser":"ubuntu","tenantName":"team-products","username":"hventura"}` | infra configuration |
+| infraConfig | object | `{"authUrl":"https://whitecloud.intra.whitestack.com:5000/v3","availabilityZones":["HAL1"],"caCerts":{"configMap":{"name":"","namespace":""}},"domainName":"Default","keypairName":"Hector","password":{"secret":{"name":"passopenstack","namespace":"default"}},"mainNetwork":{"netName":"intra-net-products","subnetName":"net-products"},"region":"RegionOne","sshUser":"ubuntu","tenantName":"team-products","username":"hventura"}` | infra configuration |
 | infraConfig.password.secret.name | string | `"passopenstack"` | Name of the component |
 | infraConfig.password.secret.namespace | string | `"default"` | Kubernetes namespace |
 | infraConfig.caCerts.configMap.name | string | `""` | Name of the component |
@@ -322,9 +321,6 @@ kubevirt:
 | nodeConfigOperator.customValues | object | `{}` | Custom values override |
 | certManager.enabled | bool | `false` | Enable or disable this component |
 | certManager.customValues | object | `{}` | Custom values override |
-| sdnController.enabled | bool | `true` | Enable or disable this component |
-| sdnController.whitesdnSecrets.password | string | `"kcatsetiw"` |  |
-| sdnController.customValues | object | `{}` | Custom values override |
 | ntp.enabled | bool | `true` | Enable or disable this component |
 | ntp.customValues | object | `{}` | Custom values override |
 | x509CertExporter.enabled | bool | `true` | Enable or disable this component |

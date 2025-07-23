@@ -5,6 +5,7 @@ metadata:
   name: {{ include "rke2-openstack-calico.name" . }}-nco
 spec:
   version: "0.2.0"
+  releaseName: "nco"
   chartName: node-config-operator
   clusterSelector:
     matchLabels:
